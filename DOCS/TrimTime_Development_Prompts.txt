@@ -1,0 +1,56 @@
+
+TRIMTIME DEVELOPMENT PROMPTS
+
+PROMPT 1 - PROJECT FOUNDATION
+[Build project foundation only: React, Tailwind, Node.js, Express, MySQL setup, folder structure, env vars, routing, middleware.]
+
+PROMPT 2 - AUTHENTICATION & ROLES
+[Build Register, Login, JWT, bcrypt, Admin/Owner/Barber roles.]
+
+PROMPT 3 - SHOPS
+[Build shop management, shop creation, editing, logo, cover image, Google Maps URL, address, district.]
+
+PROMPT 4 - BARBERS
+[Build barber management, CRUD operations, barber-to-shop relationships.]
+
+PROMPT 5 - SHOP HOURS & SCHEDULING
+[Build shop_hours, barber_schedule, barber_breaks, barber_time_off and all related APIs.]
+
+PROMPT 6 - SERVICES
+[Build services CRUD, categories, pricing, duration, validation.]
+
+PROMPT 7 - APPOINTMENT ENGINE
+[Build booking system, conflict detection, schedule validation, break validation, time-off validation, service snapshots.]
+
+PROMPT 8 - OWNER DASHBOARD
+[Build owner dashboard with appointments, barbers, services, shop settings.]
+
+PROMPT 9 - BARBER DASHBOARD
+[Build barber dashboard with personal appointments, schedules, breaks and time off.]
+
+PROMPT 10 - PUBLIC WEBSITE
+[Build homepage, search, featured shops, shop pages, Google Maps button, booking page.]
+
+PROMPT 11 - PRODUCTS
+[Build products CRUD and display on shop pages.]
+
+PROMPT 12 - GALLERY
+[Build gallery uploads, management and public gallery display.]
+
+PROMPT 13 - NOTIFICATIONS
+[Build internal notification system and UI.]
+
+PROMPT 14 - QR CODES
+[Generate QR codes per shop and allow owner downloads.]
+
+PROMPT 15 - ANALYTICS & ADMIN
+[Build analytics, customer history, queue system, admin dashboard.]
+
+IMPORTANT:
+Always attach:
+- TrimTime_FINAL_v2_DB.sql
+- TrimTime_FINAL_v2_Agent_Plan.txt
+
+Work through prompts sequentially.
+Do not skip prompts.
+Do not build future prompts early.

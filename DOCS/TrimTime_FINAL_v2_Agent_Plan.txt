@@ -1,0 +1,85 @@
+
+TRIMTIME COMPLETE AGENT SPECIFICATION (FINAL)
+
+TARGET:
+Aqaba, Jordan
+
+USER TYPES:
+1. Public User
+2. Barber
+3. Shop Owner
+4. Admin
+
+PHASE 1
+- Public website
+- Search shops
+- Shop pages
+- Google Maps link
+- Multiple barbers per shop
+- Shop hours
+- Barber schedules
+- Barber breaks
+- Barber time off
+- Services and pricing
+- Booking system
+- Barber dashboard
+- Owner dashboard
+- Admin role support
+
+PHASE 2
+- Products
+- Gallery
+- Notifications
+- QR Codes
+- Featured Shops
+- Embedded Google Maps
+
+PHASE 3
+- Analytics
+- Queue System
+- Customer History
+- Reporting
+- Full Admin Dashboard
+
+PERMISSIONS
+
+PUBLIC
+- Browse
+- Search
+- Book
+
+BARBER
+- View own appointments
+- Manage own schedule
+
+OWNER
+- Manage shop
+- Manage all barbers
+- View all appointments
+- Manage products/services/gallery
+
+ADMIN
+- Full access
+
+BOOKING VALIDATION
+
+Before showing a slot:
+1. Shop must be open.
+2. Barber must be scheduled.
+3. Barber must not be on break.
+4. Barber must not be on time off.
+5. No overlapping appointment.
+
+STACK
+
+Frontend:
+React + Tailwind
+
+Backend:
+Node.js + Express
+
+Database:
+MySQL (Aiven)
+
+Hosting:
+Render
