@@ -71,6 +71,9 @@ class AvailabilityService {
       .map(b => ({ start: timeToMinutes(b.break_start), end: timeToMinutes(b.break_end) }));
 
     // 5) Get existing appointments for the barber on that date — only blocking statuses
+    const duration = Number(service.duration_minutes);
+    if (!duration || duration <= 0) throw { status: 400, message: 'Invalid service duration' };
+
     const blockingStatuses = ['pending', 'confirmed'];
     const appointments = (await appointmentsService.getByBarberAndDate(barberId, date, blockingStatuses) || [])
       .map(a => {
@@ -78,9 +81,6 @@ class AvailabilityService {
         const apDuration = Number(a.service_duration) || duration;
         return { start: timeToMinutes(a.appointment_time), end: timeToMinutes(a.appointment_time) + apDuration };
       });
-
-    const duration = Number(service.duration_minutes);
-    if (!duration || duration <= 0) throw { status: 400, message: 'Invalid service duration' };
 
     const slots = [];
 

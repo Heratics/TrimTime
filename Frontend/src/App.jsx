@@ -3,6 +3,7 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import OwnerLayout from './layouts/OwnerLayout'
 import BarberLayout from './layouts/BarberLayout'
 import AdminLayout from './layouts/AdminLayout'
+import PublicLayout from './layouts/PublicLayout'
 import OwnerHome from './pages/owner/Home'
 import OwnerAppointments from './pages/owner/Appointments'
 import Barbers from './pages/owner/Barbers'
@@ -18,6 +19,10 @@ import AdminOwners from './pages/admin/Owners'
 import AdminBarbers from './pages/admin/Barbers'
 import AdminServices from './pages/admin/Services'
 import AdminAppointments from './pages/admin/Appointments'
+import PublicHome from './pages/public/Home'
+import PublicShops from './pages/public/Shops'
+import ShopProfile from './pages/public/ShopProfile'
+import BookAppointment from './pages/public/BookAppointment'
 import Login from './pages/Auth/Login'
 import ProtectedRoute from './components/ProtectedRoute'
 import auth from './services/auth'
@@ -26,6 +31,13 @@ export default function App(){
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
+
+      <Route path="/" element={<PublicLayout />}>
+        <Route index element={<PublicHome />} />
+        <Route path="shops" element={<PublicShops />} />
+        <Route path="shop/:slug" element={<ShopProfile />} />
+        <Route path="shop/:slug/book" element={<BookAppointment />} />
+      </Route>
 
       <Route path="/owner" element={<ProtectedRoute role="owner"><OwnerLayout /></ProtectedRoute>}>
         <Route index element={<OwnerHome />} />
@@ -51,7 +63,6 @@ export default function App(){
         <Route path="appointments" element={<AdminAppointments />} />
       </Route>
 
-      <Route path="/" element={<RoleRedirect />} />
       <Route path="*" element={<RoleRedirect />} />
     </Routes>
   )

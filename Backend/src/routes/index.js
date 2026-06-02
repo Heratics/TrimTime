@@ -12,6 +12,7 @@ const appointmentsRoutes = require('./appointments');
 const ownerRoutes = require('./owner');
 const barberDashboardRoutes = require('./barber');
 const adminRoutes = require('./admin');
+const publicShopRoutes = require('./publicShops');
 
 router.get('/health', health.getHealth);
 router.use('/auth', authRoutes);
@@ -24,5 +25,6 @@ router.use('/appointments', appointmentsRoutes);
 router.use('/owner', ownerRoutes);
 router.use('/barber', barberDashboardRoutes);
 router.use('/admin', adminRoutes);
+router.use('/public/shops', publicShopRoutes);
 
 module.exports = router;
