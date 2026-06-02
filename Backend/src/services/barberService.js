@@ -19,6 +19,13 @@ async function getByShopId(shop_id) {
   return rows;
 }
 
+async function getAll() {
+  const [rows] = await pool.query(
+    'SELECT barbers.*, shops.name AS shop_name FROM barbers JOIN shops ON shops.id = barbers.shop_id ORDER BY barbers.created_at DESC'
+  );
+  return rows;
+}
+
 async function updateById(id, data) {
   const fields = [];
   const values = [];
@@ -44,4 +51,4 @@ async function getByUserId(user_id) {
   return rows[0] || null;
 }
 
-module.exports = { createBarber, getById, getByShopId, updateById, deleteById, getByUserId };
+module.exports = { createBarber, getById, getByShopId, getAll, updateById, deleteById, getByUserId };

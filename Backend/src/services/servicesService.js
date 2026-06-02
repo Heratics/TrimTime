@@ -1,6 +1,13 @@
 const pool = require('../db/db');
 
 class ServicesService {
+  async getAll() {
+    const [rows] = await pool.query(
+      'SELECT services.*, shops.name AS shop_name FROM services JOIN shops ON shops.id = services.shop_id ORDER BY shops.name, services.category, services.name'
+    );
+    return rows;
+  }
+
   async getByShopId(shopId) {
     const [rows] = await pool.query(
       'SELECT * FROM services WHERE shop_id = ? ORDER BY category, name',

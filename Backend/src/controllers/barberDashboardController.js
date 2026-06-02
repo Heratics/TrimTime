@@ -1,0 +1,67 @@
+const appointmentsService = require('../services/appointmentsService');
+const barberService = require('../services/barberService');
+const barberScheduleService = require('../services/barberScheduleService');
+const barberBreakService = require('../services/barberBreakService');
+const barberTimeOffService = require('../services/barberTimeOffService');
+
+async function getCurrentBarber(userId) {
+  return barberService.getByUserId(userId);
+}
+
+function getLocalDateValue(value = new Date()) {
+  const year = value.getFullYear();
+  const month = String(value.getMonth() + 1).padStart(2, '0');
+  const day = String(value.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function getDateValue(value) {
+  return value instanceof Date ? getLocalDateValue(value) : String(value).slice(0, 10);
+}
+
+async function getDashboard(req, res, next) {
+  try {
+    const barber = await getCurrentBarber(req.user.userId);
+    if (!barber) return res.status(404).json({ error: 'Barber profile not found' });
+
+    const appointments = await appointmentsService.getByBarberId(barber.id);
+    const today = getLocalDateValue();
+    const todaysAppointments = appointments.filter(appointment => {
+      return getDateValue(appointment.appointment_date) === today;
+    });
+
+    res.json({
+      barber,
+      total_appointments: appointments.length,
+      today_appointments: todaysAppointments.length,
+      pending_appointments: appointments.filter(appointment => appointment.status === 'pending').length,
+      confirmed_appointments: appointments.filter(appointment => appointment.status === 'confirmed').length,
+      completed_appointments: appointments.filter(appointment => appointment.status === 'completed').length,
+      upcoming_appointments: appointments.filter(appointment => {
+        return appointment.status !== 'cancelled' &&
+          getDateValue(appointment.appointment_date) >= today;
+      }).length,
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function getSchedule(req, res, next) {
+  try {
+    const barber = await getCurrentBarber(req.user.userId);
+    if (!barber) return res.status(404).json({ error: 'Barber profile not found' });
+
+    const [schedules, breaks, timeOffs] = await Promise.all([
+      barberScheduleService.getBarberScheduleByBarberId(barber.id),
+      barberBreakService.getBarberBreaksByBarberId(barber.id),
+      barberTimeOffService.getBarberTimeOffByBarberId(barber.id),
+    ]);
+
+    res.json({ barber, schedules, breaks, timeOffs });
+  } catch (err) {
+    next(err);
+  }
+}
+
+module.exports = { getDashboard, getSchedule };

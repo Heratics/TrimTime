@@ -18,7 +18,7 @@ exports.register = async (req, res, next) => {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
-    const allowedRoles = ['admin','owner','barber'];
+    const allowedRoles = ['owner','barber'];
     if (!allowedRoles.includes(role)) return res.status(400).json({ error: 'Invalid role' });
 
     const existing = await userService.getByEmail(email);

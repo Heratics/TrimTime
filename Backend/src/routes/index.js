@@ -10,6 +10,8 @@ const servicesRoutes = require('./services');
 const availabilityRoutes = require('./availability');
 const appointmentsRoutes = require('./appointments');
 const ownerRoutes = require('./owner');
+const barberDashboardRoutes = require('./barber');
+const adminRoutes = require('./admin');
 
 router.get('/health', health.getHealth);
 router.use('/auth', authRoutes);
@@ -20,5 +22,7 @@ router.use('/services', servicesRoutes);
 router.use('/availability', availabilityRoutes);
 router.use('/appointments', appointmentsRoutes);
 router.use('/owner', ownerRoutes);
+router.use('/barber', barberDashboardRoutes);
+router.use('/admin', adminRoutes);
 
 module.exports = router;

@@ -1,6 +1,17 @@
 const pool = require('../db/db');
 
 class AppointmentsService {
+  async getAll() {
+    const [rows] = await pool.query(
+      `SELECT appointments.*, shops.name AS shop_name, barbers.full_name AS barber_name
+       FROM appointments
+       JOIN shops ON shops.id = appointments.shop_id
+       JOIN barbers ON barbers.id = appointments.barber_id
+       ORDER BY appointments.appointment_date DESC, appointments.appointment_time DESC`
+    );
+    return rows;
+  }
+
   // Returns appointments for a barber on a specific date.
   // Optional `statuses` array filters by appointment status (e.g. ['pending','confirmed']).
   async getByBarberAndDate(barberId, date, statuses = ['pending','confirmed']) {
