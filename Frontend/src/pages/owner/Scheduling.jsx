@@ -94,9 +94,13 @@ export default function Scheduling(){
   }
 
   async function addSchedule(){
-    if (!selectedBarber) return
-    await createBarberSchedule(selectedBarber.id, { ...newSchedule, day_of_week: Number(newSchedule.day_of_week) })
-    await refreshBarberData(selectedBarber.id)
+      if (!selectedBarber) return
+      try {
+        await createBarberSchedule(selectedBarber.id, { ...newSchedule, day_of_week: Number(newSchedule.day_of_week) })
+        await refreshBarberData(selectedBarber.id)
+      } catch (err) {
+        alert(err?.response?.data?.error || err?.response?.data?.errors?.[0]?.msg || 'Failed to save schedule')
+    }
   }
 
   async function removeSchedule(id){
@@ -314,10 +318,10 @@ export default function Scheduling(){
                           </select>
                         </Field>
                         <Field label="Start">
-                          <input value={newSchedule.start_time} onChange={e=>setNewSchedule({...newSchedule, start_time:e.target.value})} className="w-full rounded-lg border px-3 py-2" />
+                          <input type="time" value={newSchedule.start_time} onChange={e=>setNewSchedule({...newSchedule, start_time:e.target.value})} className="w-full rounded-lg border px-3 py-2" />
                         </Field>
                         <Field label="End">
-                          <input value={newSchedule.end_time} onChange={e=>setNewSchedule({...newSchedule, end_time:e.target.value})} className="w-full rounded-lg border px-3 py-2" />
+                          <input type="time" value={newSchedule.end_time} onChange={e=>setNewSchedule({...newSchedule, end_time:e.target.value})} className="w-full rounded-lg border px-3 py-2" />
                         </Field>
                         <div className="flex items-end">
                           <button className="w-full rounded-lg bg-green-600 px-4 py-2.5 font-medium text-white" onClick={addSchedule} type="button">

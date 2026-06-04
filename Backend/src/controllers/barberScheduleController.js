@@ -48,7 +48,7 @@ async function createBarberSchedule(req, res, next) {
     // Check for overlapping schedules on same day
     const existing = await barberScheduleService.getBarberScheduleByBarberId(barberId);
     const overlap = existing.find(s => {
-      if (s.day_of_week !== day_of_week) return false;
+      if (Number(s.day_of_week) !== Number(day_of_week)) return false;
       return timesOverlap(start_time, end_time, s.start_time, s.end_time);
     });
     if (overlap) return res.status(409).json({ error: 'Schedule overlaps with existing schedule' });
@@ -123,7 +123,7 @@ async function updateBarberSchedule(req, res, next) {
       const existing = await barberScheduleService.getBarberScheduleByBarberId(barberId);
       const overlap = existing.find(s => {
         if (s.id === scheduleId) return false; // Skip self
-        if (s.day_of_week !== day_of_week) return false;
+        if (Number(s.day_of_week) !== Number(day_of_week)) return false;
         return timesOverlap(start_time, end_time, s.start_time, s.end_time);
       });
       if (overlap) return res.status(409).json({ error: 'Schedule overlaps with existing schedule' });
