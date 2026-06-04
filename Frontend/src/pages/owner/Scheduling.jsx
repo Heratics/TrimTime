@@ -17,6 +17,16 @@ import {
   deleteBarberTimeOff,
 } from '../../services/ownerService'
 
+const DAYS = [
+  'Sunday',
+  'Monday',
+  'Tuesday',
+  'Wednesday',
+  'Thursday',
+  'Friday',
+  'Saturday'
+]
+
 export default function Scheduling(){
   const [shopHours, setShopHours] = useState([])
   const [barbers, setBarbers] = useState([])
@@ -186,7 +196,9 @@ export default function Scheduling(){
           {shopHours.map(hour => (
             <div key={hour.id} className="flex flex-col gap-2 rounded-xl border p-3 sm:flex-row sm:items-center sm:justify-between">
               <div className="text-sm font-medium">
-                Day {hour.day_of_week}: {hour.is_closed ? 'Closed' : `${hour.open_time} - ${hour.close_time}`}
+                <p>
+                  {DAYS[hour.day_of_week]}: {hour.open_time} - {hour.close_time}
+                </p>
               </div>
               <button className="self-start rounded-lg bg-red-500 px-3 py-2 text-sm text-white sm:self-auto" onClick={()=>removeShopHour(hour.id)}>
                 Delete
@@ -199,7 +211,17 @@ export default function Scheduling(){
         <div className="mt-4 rounded-xl border bg-gray-50 p-4">
           <div className="grid gap-3 md:grid-cols-4">
             <Field label="Day of week">
-              <input type="number" min="0" max="6" value={newHour.day_of_week} onChange={e=>setNewHour({...newHour, day_of_week:e.target.value})} className="w-full rounded-lg border px-3 py-2" />
+              <select
+                value={newHour.day_of_week}
+                onChange={e=>setNewHour({...newHour, day_of_week:e.target.value})}
+                className="w-full rounded-lg border px-3 py-2"
+              >
+                {DAYS.map((day, index) => (
+                  <option key={index} value={index}>
+                    {day}
+                  </option>
+                ))}
+              </select>
             </Field>
             <Field label="Open time">
               <input value={newHour.open_time} onChange={e=>setNewHour({...newHour, open_time:e.target.value})} className="w-full rounded-lg border px-3 py-2" />
@@ -265,7 +287,9 @@ export default function Scheduling(){
                     <div className="space-y-2">
                       {schedules.map(schedule => (
                         <div key={schedule.id} className="flex flex-col gap-2 rounded-xl border bg-white p-3 sm:flex-row sm:items-center sm:justify-between">
-                          <div className="text-sm font-medium">Day {schedule.day_of_week}: {schedule.start_time} - {schedule.end_time}</div>
+                          <div className="text-sm font-medium">
+                            {DAYS[schedule.day_of_week]}: {schedule.start_time} - {schedule.end_time}
+                          </div>
                           <button className="self-start rounded-lg bg-red-500 px-3 py-2 text-sm text-white sm:self-auto" onClick={()=>removeSchedule(schedule.id)} type="button">
                             Delete
                           </button>
@@ -277,7 +301,17 @@ export default function Scheduling(){
                     <div className="rounded-xl border bg-white p-4">
                       <div className="grid gap-3 md:grid-cols-4">
                         <Field label="Day">
-                          <input type="number" min="0" max="6" value={newSchedule.day_of_week} onChange={e=>setNewSchedule({...newSchedule, day_of_week:e.target.value})} className="w-full rounded-lg border px-3 py-2" />
+                          <select
+                            value={newSchedule.day_of_week}
+                            onChange={e=>setNewSchedule({...newSchedule, day_of_week:e.target.value})}
+                            className="w-full rounded-lg border px-3 py-2"
+                          >
+                            {DAYS.map((day, index) => (
+                              <option key={index} value={index}>
+                                {day}
+                              </option>
+                            ))}
+                          </select>
                         </Field>
                         <Field label="Start">
                           <input value={newSchedule.start_time} onChange={e=>setNewSchedule({...newSchedule, start_time:e.target.value})} className="w-full rounded-lg border px-3 py-2" />
@@ -301,7 +335,9 @@ export default function Scheduling(){
                       {breaks.map(item => (
                         <div key={item.id} className="flex flex-col gap-3 rounded-xl border bg-white p-3 sm:flex-row sm:items-center sm:justify-between">
                           <div>
-                            <div className="text-sm font-medium">Day {item.day_of_week}: {item.break_start} - {item.break_end}</div>
+                            <div className="text-sm font-medium">
+                              {DAYS[item.day_of_week]}: {item.break_start} - {item.break_end}
+                            </div>
                             <div className="text-xs text-gray-500">{item.reason || 'No reason provided'}</div>
                           </div>
                           <div className="flex gap-2 self-start sm:self-auto">
@@ -329,7 +365,17 @@ export default function Scheduling(){
 
                       <div className="grid gap-3 md:grid-cols-4">
                         <Field label="Day of week">
-                          <input type="number" min="0" max="6" value={breakForm.day_of_week} onChange={e=>setBreakForm({...breakForm, day_of_week:e.target.value})} className="w-full rounded-lg border px-3 py-2" />
+                          <select
+                            value={breakForm.day_of_week}
+                            onChange={e=>setBreakForm({...breakForm, day_of_week:e.target.value})}
+                            className="w-full rounded-lg border px-3 py-2"
+                          >
+                            {DAYS.map((day, index) => (
+                              <option key={index} value={index}>
+                                {day}
+                              </option>
+                            ))}
+                          </select>
                         </Field>
                         <Field label="Start time">
                           <input value={breakForm.break_start} onChange={e=>setBreakForm({...breakForm, break_start:e.target.value})} className="w-full rounded-lg border px-3 py-2" placeholder="12:00" />

@@ -36,7 +36,9 @@ async function createBarberSchedule(req, res, next) {
 
     // Check barber schedule against shop hours for this day
     const shopHours = await shopHoursService.getShopHoursByShopId(shop.id);
-    const dayHours = shopHours.find(h => h.day_of_week === day_of_week);
+    const dayHours = shopHours.find(
+      h => Number(h.day_of_week) === Number(day_of_week)
+      );  
     if (dayHours && !dayHours.is_closed) {
       if (!timeWithinRange(start_time, end_time, dayHours.open_time, dayHours.close_time)) {
         return res.status(400).json({ error: 'Barber schedule must fall within shop hours' });
@@ -108,7 +110,9 @@ async function updateBarberSchedule(req, res, next) {
 
       // Check against shop hours
       const shopHours = await shopHoursService.getShopHoursByShopId(shop.id);
-      const dayHours = shopHours.find(h => h.day_of_week === day_of_week);
+      const dayHours = shopHours.find(
+        h => Number(h.day_of_week) === Number(day_of_week)
+        );
       if (dayHours && !dayHours.is_closed) {
         if (!timeWithinRange(start_time, end_time, dayHours.open_time, dayHours.close_time)) {
           return res.status(400).json({ error: 'Barber schedule must fall within shop hours' });
