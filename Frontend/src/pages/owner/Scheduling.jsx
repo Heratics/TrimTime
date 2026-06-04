@@ -39,6 +39,9 @@ export default function Scheduling(){
       getShopHours(),
       fetchBarbers(),
     ])
+
+    console.log('SHOP HOURS API RESPONSE:', shopHoursResponse)
+
     setShopHours(shopHoursResponse.hours || [])
     setBarbers(barbersResponse.barbers || [])
   }
@@ -161,6 +164,8 @@ export default function Scheduling(){
     await deleteBarberTimeOff(selectedBarber.id, itemId)
     await refreshBarberData(selectedBarber.id)
   }
+
+  console.log('CURRENT shopHours STATE:', shopHours)
 
   return (
     <div className="space-y-6">
