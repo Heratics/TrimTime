@@ -39,13 +39,13 @@ export default function Scheduling(){
       getShopHours(),
       fetchBarbers(),
     ])
-    setShopHours(shopHoursResponse.shop_hours || [])
+    setShopHours(shopHoursResponse.hours || [])
     setBarbers(barbersResponse.barbers || [])
   }
 
   async function refreshShopHours(){
     const response = await getShopHours()
-    setShopHours(response.shop_hours || [])
+    setShopHours(response.hours || [])
   }
 
   async function refreshBarberData(barberId){
