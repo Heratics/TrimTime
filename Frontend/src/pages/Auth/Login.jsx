@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import auth from '../../services/auth'
 
 export default function Login(){
@@ -39,9 +39,23 @@ export default function Login(){
           Password
           <input type="password" required value={password} onChange={event=>setPassword(event.target.value)} className="mt-1 w-full rounded-lg border px-3 py-2" />
         </label>
-        <button type="submit" disabled={submitting} className="mt-5 w-full rounded-lg bg-gray-900 px-4 py-2.5 font-medium text-white disabled:opacity-60">
-          {submitting ? 'Signing in...' : 'Sign In'}
-        </button>
+        <button
+          type="submit"
+          disabled={submitting}
+          className="mt-5 w-full rounded-lg bg-gray-900 px-4 py-2.5 font-medium text-white disabled:opacity-60"
+            >
+              {submitting ? 'Signing in...' : 'Sign In'}
+            </button>
+
+            <p className="mt-4 text-center text-sm text-gray-600">
+              Don't have an account?{' '}
+              <Link
+                to="/register"
+                className="font-medium text-gray-900 hover:underline"
+              >
+                Create Account
+              </Link>
+            </p>  
       </form>
     </div>
   )

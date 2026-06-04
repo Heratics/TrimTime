@@ -16,4 +16,20 @@ const auth = {
     localStorage.removeItem('user')
   }
 }
+async function register(data) {
+  const response = await api.post('/auth/register', data)
+
+  localStorage.setItem('token', response.data.token)
+  localStorage.setItem('user', JSON.stringify(response.data.user))
+
+  return response.data.user
+}
+
 export default auth
+
+export default {
+  login,
+  logout,
+  register,
+  getCurrentUser
+}

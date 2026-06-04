@@ -26,6 +26,7 @@ import BookAppointment from './pages/public/BookAppointment'
 import Login from './pages/Auth/Login'
 import ProtectedRoute from './components/ProtectedRoute'
 import auth from './services/auth'
+import Register from './pages/Auth/Register'
 
 export default function App(){
   return (
@@ -38,6 +39,8 @@ export default function App(){
         <Route path="shop/:slug" element={<ShopProfile />} />
         <Route path="shop/:slug/book" element={<BookAppointment />} />
       </Route>
+
+      <Route path="/register" element={<Register />} />
 
       <Route path="/owner" element={<ProtectedRoute role="owner"><OwnerLayout /></ProtectedRoute>}>
         <Route index element={<OwnerHome />} />
@@ -75,4 +78,5 @@ function RoleRedirect(){
   if (user.role === 'owner') return <Navigate to="/owner" replace />
   if (user.role === 'admin') return <Navigate to="/admin" replace />
   return <Navigate to="/login" replace />
+  
 }
