@@ -10,12 +10,22 @@ function validateTimeRange(start_time, end_time) {
   return { valid: true };
 }
 
+function normalizeTime(t) {
+  return t ? t.slice(0, 5) : t; // trims "09:00:00" → "09:00"
+}
+
 function timeWithinRange(testStart, testEnd, rangeStart, rangeEnd) {
-  return testStart >= rangeStart && testEnd <= rangeEnd;
+  const s = normalizeTime(testStart);
+  const e = normalizeTime(testEnd);
+  const rs = normalizeTime(rangeStart);
+  const re = normalizeTime(rangeEnd);
+  return s >= rs && e <= re;
 }
 
 function timesOverlap(start1, end1, start2, end2) {
-  return start1 < end2 && end1 > start2;
+  const s1 = normalizeTime(start1), e1 = normalizeTime(end1);
+  const s2 = normalizeTime(start2), e2 = normalizeTime(end2);
+  return s1 < e2 && e1 > s2;
 }
 
 async function createBarberSchedule(req, res, next) {

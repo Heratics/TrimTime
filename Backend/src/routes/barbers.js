@@ -14,11 +14,11 @@ function runValidation(req, res, next) {
 
 router.post('/', requireAuth, requireOwner, createRules, runValidation, barberController.create);
 router.get('/shop', requireAuth, requireOwner, barberController.getByShop);
+// Mount barber scheduling routes FIRST so /:id doesn't swallow them
+router.use('/:barberId', barberSchedulingRoutes);
+
 router.get('/:id', requireAuth, requireOwner, barberController.getById);
 router.put('/:id', requireAuth, requireOwner, updateRules, runValidation, barberController.update);
-router.delete('/:id', requireAuth, requireOwner, barberController.deleteBarber);
-
-// Mount barber scheduling routes
-router.use('/:barberId', barberSchedulingRoutes);
+router.delete('/:id', requireAuth, requireOwner, barberController.deleteBarber);;
 
 module.exports = router;
