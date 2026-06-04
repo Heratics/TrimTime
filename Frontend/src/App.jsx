@@ -10,6 +10,7 @@ import Barbers from './pages/owner/Barbers'
 import Services from './pages/owner/Services'
 import Scheduling from './pages/owner/Scheduling'
 import Settings from './pages/owner/Settings'
+import SetupShop from './pages/owner/SetupShop'
 import BarberHome from './pages/barber/Home'
 import BarberAppointments from './pages/barber/Appointments'
 import BarberSchedule from './pages/barber/Schedule'
@@ -24,15 +25,20 @@ import PublicShops from './pages/public/Shops'
 import ShopProfile from './pages/public/ShopProfile'
 import BookAppointment from './pages/public/BookAppointment'
 import Login from './pages/Auth/Login'
+import Register from './pages/Auth/Register'
 import ProtectedRoute from './components/ProtectedRoute'
 import auth from './services/auth'
-import Register from './pages/Auth/Register'
 
-export default function App(){
+export default function App() {
   return (
     <Routes>
-      <Route path="/login" element={<Login />} />
+      {/* Hidden staff login — not linked anywhere in public UI */}
+      <Route path="/staff/login" element={<Login />} />
 
+      {/* Owner registration — only accessible if you know the URL */}
+      <Route path="/staff/register" element={<Register />} />
+
+      {/* Public-facing site — no login button */}
       <Route path="/" element={<PublicLayout />}>
         <Route index element={<PublicHome />} />
         <Route path="shops" element={<PublicShops />} />
@@ -40,10 +46,10 @@ export default function App(){
         <Route path="shop/:slug/book" element={<BookAppointment />} />
       </Route>
 
-      <Route path="/register" element={<Register />} />
-
+      {/* Owner portal */}
       <Route path="/owner" element={<ProtectedRoute role="owner"><OwnerLayout /></ProtectedRoute>}>
         <Route index element={<OwnerHome />} />
+        <Route path="setup" element={<SetupShop />} />
         <Route path="appointments" element={<OwnerAppointments />} />
         <Route path="barbers" element={<Barbers />} />
         <Route path="services" element={<Services />} />
@@ -51,12 +57,14 @@ export default function App(){
         <Route path="settings" element={<Settings />} />
       </Route>
 
+      {/* Barber portal */}
       <Route path="/barber" element={<ProtectedRoute role="barber"><BarberLayout /></ProtectedRoute>}>
         <Route index element={<BarberHome />} />
         <Route path="appointments" element={<BarberAppointments />} />
         <Route path="schedule" element={<BarberSchedule />} />
       </Route>
 
+      {/* Admin panel */}
       <Route path="/admin" element={<ProtectedRoute role="admin"><AdminLayout /></ProtectedRoute>}>
         <Route index element={<AdminHome />} />
         <Route path="shops" element={<AdminShops />} />
@@ -71,12 +79,11 @@ export default function App(){
   )
 }
 
-function RoleRedirect(){
+function RoleRedirect() {
   const user = auth.getCurrentUser()
-  if (!user) return <Navigate to="/login" replace />
+  if (!user) return <Navigate to="/" replace />
   if (user.role === 'barber') return <Navigate to="/barber" replace />
   if (user.role === 'owner') return <Navigate to="/owner" replace />
   if (user.role === 'admin') return <Navigate to="/admin" replace />
-  return <Navigate to="/login" replace />
-  
+  return <Navigate to="/" replace />
 }

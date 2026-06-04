@@ -7,16 +7,29 @@ const ownerItems = [
   { to: '/owner/barbers', label: 'Barbers' },
   { to: '/owner/services', label: 'Services' },
   { to: '/owner/scheduling', label: 'Scheduling' },
-  { to: '/owner/settings', label: 'Shop Settings' }
+  { to: '/owner/settings', label: 'Shop Settings' },
 ]
 
-export default function Sidebar({ items = ownerItems }){
+const ROOT_PATHS = ['/owner', '/barber', '/admin']
+
+export default function Sidebar({ items = ownerItems }) {
   return (
-    <aside className="w-64 bg-white border-r hidden md:block">
-      <div className="p-4 font-bold">TrimTime</div>
-      <nav className="p-4 space-y-1">
-        {items.map(i=> (
-          <NavLink key={i.to} to={i.to} end={i.to === '/owner' || i.to === '/barber' || i.to === '/admin'} className={({isActive})=> isActive ? 'block p-2 rounded bg-gray-100' : 'block p-2 rounded hover:bg-gray-50'}>{i.label}</NavLink>
+    <aside className="w-56 bg-white border-r hidden md:flex flex-col shrink-0">
+      <div className="p-4 font-black text-lg tracking-tight border-b">TrimTime</div>
+      <nav className="p-3 space-y-0.5 flex-1">
+        {items.map(i => (
+          <NavLink
+            key={i.to}
+            to={i.to}
+            end={ROOT_PATHS.includes(i.to)}
+            className={({ isActive }) =>
+              isActive
+                ? 'block rounded-lg px-3 py-2 text-sm font-semibold bg-stone-900 text-white'
+                : 'block rounded-lg px-3 py-2 text-sm text-gray-600 hover:bg-gray-50'
+            }
+          >
+            {i.label}
+          </NavLink>
         ))}
       </nav>
     </aside>

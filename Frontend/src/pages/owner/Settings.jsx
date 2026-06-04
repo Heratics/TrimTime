@@ -1,32 +1,119 @@
 import React, { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import api from '../../services/api'
 
-export default function Settings(){
-  const [form, setForm] = useState({})
-  useEffect(()=>{
-    api.get('/shops/me').then(r=>setForm(r.data.shop || {})).catch(()=>setForm({}))
-  },[])
+export default function Settings() {
+  const [form, setForm] = useState(null)
+  const [error, setError] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
 
-  function updateField(k,v){ setForm({...form,[k]:v}) }
-  async function save(){
-    if (!form.id) return
-    await api.put('/shops/' + form.id, form)
-    alert('Saved')
+  useEffect(() => {
+    api.get('/shops/me')
+      .then(r => setForm(r.data.shop || {}))
+      .catch(err => {
+        if (err?.response?.status === 404) setForm(false)
+        else setError('Unable to load shop settings.')
+      })
+  }, [])
+
+  function updateField(k, v) { setForm({ ...form, [k]: v }) }
+
+  async function save(e) {
+    e.preventDefault()
+    if (!form?.id) return
+    setSaving(true)
+    setError('')
+    setSaved(false)
+    try {
+      await api.put('/shops/' + form.id, form)
+      setSaved(true)
+      setTimeout(() => setSaved(false), 3000)
+    } catch (err) {
+      setError(err?.response?.data?.error || 'Failed to save settings.')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  if (form === null) {
+    return <div className="py-10 text-center text-sm text-gray-500">Loading…</div>
+  }
+
+  if (form === false) {
+    return (
+      <div className="mx-auto max-w-lg py-10 text-center">
+        <p className="text-gray-600 mb-4">You haven't set up a shop yet.</p>
+        <Link to="/owner/setup" className="rounded-xl bg-stone-900 px-5 py-2.5 font-semibold text-white">
+          Set Up My Shop
+        </Link>
+      </div>
+    )
   }
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-4">Shop Settings</h1>
-      <div className="space-y-3 max-w-xl">
-        <input value={form.name||''} onChange={e=>updateField('name',e.target.value)} className="w-full p-2 border" placeholder="Shop name" />
-        <textarea value={form.description||''} onChange={e=>updateField('description',e.target.value)} className="w-full p-2 border" placeholder="Description" />
-        <input value={form.address||''} onChange={e=>updateField('address',e.target.value)} className="w-full p-2 border" placeholder="Address" />
-        <input value={form.district||''} onChange={e=>updateField('district',e.target.value)} className="w-full p-2 border" placeholder="District" />
-        <input value={form.google_maps_url||''} onChange={e=>updateField('google_maps_url',e.target.value)} className="w-full p-2 border" placeholder="Google Maps URL" />
-        <input value={form.logo_url||''} onChange={e=>updateField('logo_url',e.target.value)} className="w-full p-2 border" placeholder="Logo URL" />
-        <input value={form.cover_image_url||''} onChange={e=>updateField('cover_image_url',e.target.value)} className="w-full p-2 border" placeholder="Cover Image URL" />
-        <div><button onClick={save} className="px-4 py-2 bg-blue-600 text-white rounded">Save</button></div>
-      </div>
+      <h1 className="text-2xl font-black mb-1">Shop Settings</h1>
+      <p className="text-sm text-gray-500 mb-6">Update your shop's public profile information.</p>
+
+      {error && (
+        <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">{error}</div>
+      )}
+      {saved && (
+        <div className="mb-4 rounded-lg border border-green-200 bg-green-50 p-3 text-sm text-green-700">
+          Settings saved successfully.
+        </div>
+      )}
+
+      <form onSubmit={save} className="space-y-4 max-w-xl rounded-2xl border bg-white p-6 shadow-sm">
+        <Field label="Shop Name">
+          <input value={form.name || ''} onChange={e => updateField('name', e.target.value)} className="w-full rounded-lg border px-3 py-2.5" required />
+        </Field>
+        <Field label="Description">
+          <textarea value={form.description || ''} onChange={e => updateField('description', e.target.value)} rows={3} className="w-full rounded-lg border px-3 py-2.5" />
+        </Field>
+        <div className="grid grid-cols-2 gap-4">
+          <Field label="Phone">
+            <input value={form.phone || ''} onChange={e => updateField('phone', e.target.value)} className="w-full rounded-lg border px-3 py-2.5" />
+          </Field>
+          <Field label="Email">
+            <input type="email" value={form.email || ''} onChange={e => updateField('email', e.target.value)} className="w-full rounded-lg border px-3 py-2.5" />
+          </Field>
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <Field label="District">
+            <input value={form.district || ''} onChange={e => updateField('district', e.target.value)} className="w-full rounded-lg border px-3 py-2.5" />
+          </Field>
+          <Field label="Address">
+            <input value={form.address || ''} onChange={e => updateField('address', e.target.value)} className="w-full rounded-lg border px-3 py-2.5" />
+          </Field>
+        </div>
+        <Field label="Google Maps URL">
+          <input value={form.google_maps_url || ''} onChange={e => updateField('google_maps_url', e.target.value)} className="w-full rounded-lg border px-3 py-2.5" />
+        </Field>
+        <Field label="Logo URL">
+          <input value={form.logo_url || ''} onChange={e => updateField('logo_url', e.target.value)} className="w-full rounded-lg border px-3 py-2.5" />
+        </Field>
+        <Field label="Cover Image URL">
+          <input value={form.cover_image_url || ''} onChange={e => updateField('cover_image_url', e.target.value)} className="w-full rounded-lg border px-3 py-2.5" />
+        </Field>
+        <button
+          type="submit"
+          disabled={saving}
+          className="rounded-xl bg-stone-900 px-5 py-2.5 font-semibold text-white disabled:opacity-60"
+        >
+          {saving ? 'Saving…' : 'Save Settings'}
+        </button>
+      </form>
     </div>
+  )
+}
+
+function Field({ label, children }) {
+  return (
+    <label className="block text-sm font-medium text-stone-700">
+      {label}
+      <div className="mt-1">{children}</div>
+    </label>
   )
 }

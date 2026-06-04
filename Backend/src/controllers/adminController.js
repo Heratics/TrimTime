@@ -1,3 +1,5 @@
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 const appointmentsService = require('../services/appointmentsService');
 const barberService = require('../services/barberService');
 const servicesService = require('../services/servicesService');
@@ -5,6 +7,8 @@ const shopService = require('../services/shopService');
 const userService = require('../services/userService');
 
 const appointmentStatuses = ['pending', 'confirmed', 'completed', 'cancelled'];
+const JWT_SECRET = process.env.JWT_SECRET || 'change_this_secret';
+const SALT_ROUNDS = process.env.SALT_ROUNDS ? Number(process.env.SALT_ROUNDS) : 12;
 
 async function getDashboard(req, res, next) {
   try {
@@ -21,8 +25,8 @@ async function getDashboard(req, res, next) {
       total_owners: owners.length,
       total_barbers: barbers.length,
       total_appointments: appointments.length,
-      active_barbers: barbers.filter(barber => barber.is_active).length,
-      active_services: services.filter(service => service.is_active).length,
+      active_barbers: barbers.filter(b => b.is_active).length,
+      active_services: services.filter(s => s.is_active).length,
     });
   } catch (err) {
     next(err);
@@ -131,6 +135,49 @@ async function updateServiceStatus(req, res, next) {
   }
 }
 
+// Admin creates a barber user account and optionally links it to a barber profile
+async function createBarberUser(req, res, next) {
+  try {
+    const { full_name, email, password, phone, barber_id } = req.body;
+    if (!full_name || !email || !password) {
+      return res.status(400).json({ error: 'full_name, email, and password are required' });
+    }
+
+    const existing = await userService.getByEmail(email);
+    if (existing) return res.status(409).json({ error: 'An account with this email already exists.' });
+
+    const password_hash = await bcrypt.hash(password, SALT_ROUNDS);
+    const user = await userService.create({ full_name, email, password_hash, phone, role: 'barber' });
+
+    // Optionally link to an existing barber profile
+    let barber = null;
+    if (barber_id) {
+      barber = await barberService.getById(Number(barber_id));
+      if (barber) {
+        barber = await barberService.updateById(barber.id, { user_id: user.id });
+      }
+    }
+
+    const { password_hash: _, ...safeUser } = user;
+    res.status(201).json({ user: safeUser, barber: barber || null });
+  } catch (err) {
+    next(err);
+  }
+}
+
+// List all users (admin use)
+async function listUsers(req, res, next) {
+  try {
+    const [owners, barbers] = await Promise.all([
+      userService.getByRole('owner'),
+      userService.getByRole('barber'),
+    ]);
+    res.json({ users: [...owners, ...barbers] });
+  } catch (err) {
+    next(err);
+  }
+}
+
 module.exports = {
   getDashboard,
   listShops,
@@ -142,4 +189,6 @@ module.exports = {
   updateShop,
   updateBarberStatus,
   updateServiceStatus,
+  createBarberUser,
+  listUsers,
 };
