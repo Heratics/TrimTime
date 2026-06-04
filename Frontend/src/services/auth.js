@@ -16,7 +16,8 @@ const auth = {
     localStorage.removeItem('user')
   }
 }
-async function register(data) {
+
+auth.register = async function(data) {
   const response = await api.post('/auth/register', data)
 
   localStorage.setItem('token', response.data.token)
@@ -26,10 +27,3 @@ async function register(data) {
 }
 
 export default auth
-
-export default {
-  login,
-  logout,
-  register,
-  getCurrentUser
-}
