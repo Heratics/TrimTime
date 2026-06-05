@@ -58,7 +58,7 @@ function ShopSettings() {
     setError('')
     setSaved(false)
     try {
-      const { id, owner_user_id, created_at, updated_at, is_featured, ...shopPayload } = form
+      const { id, owner_user_id, created_at, updated_at, is_featured, slug, city, country, latitude, longitude, ...shopPayload } = form
       await api.put('/shops/' + id, shopPayload)
       setSaved(true)
       setTimeout(() => setSaved(false), 3000)
