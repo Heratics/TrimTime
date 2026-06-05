@@ -7,7 +7,7 @@ const ownerItems = [
   { to: '/owner/barbers', label: 'Barbers' },
   { to: '/owner/services', label: 'Services' },
   { to: '/owner/scheduling', label: 'Scheduling' },
-  { to: '/owner/settings', label: 'Shop Settings' },
+  { to: '/owner/settings', label: 'Settings' },
 ]
 
 const ROOT_PATHS = ['/owner', '/barber', '/admin']

@@ -73,7 +73,7 @@ export default function Home() {
         <QuickLink to="/owner/barbers" label="Manage Barbers" />
         <QuickLink to="/owner/services" label="Manage Services" />
         <QuickLink to="/owner/scheduling" label="Scheduling" />
-        <QuickLink to="/owner/settings" label="Shop Settings" />
+        <QuickLink to="/owner/settings" label="Settings" />
       </div>
     </div>
   )
