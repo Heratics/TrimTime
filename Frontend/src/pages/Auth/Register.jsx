@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import auth from '../../services/auth'
+import api from '../../services/api'
 
 export default function Register() {
   const navigate = useNavigate()
@@ -9,10 +9,12 @@ export default function Register() {
     email: '',
     phone: '',
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
+    role: 'owner'
   })
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const [pending, setPending] = useState(false)
 
   function update(field, value) {
     setForm(prev => ({ ...prev, [field]: value }))
@@ -20,20 +22,24 @@ export default function Register() {
 
   async function submit(event) {
     event.preventDefault()
+    if (form.role === 'barber') {
+      return setError('Barber accounts are created by shop owners. Please contact your shop owner.')
+    }
     if (form.password !== form.confirmPassword) {
       return setError('Passwords do not match.')
     }
     try {
       setSubmitting(true)
       setError('')
-      await auth.register({
+      const { default: api } = await import('../../services/api')
+      await api.post('/auth/register', {
         full_name: form.full_name,
         email: form.email,
         phone: form.phone,
         password: form.password,
-        role: 'owner'
+        role: form.role
       })
-      navigate('/owner', { replace: true })
+      setPending(true)
     } catch (err) {
       setError(err?.response?.data?.error || 'Registration failed.')
     } finally {
@@ -41,12 +47,34 @@ export default function Register() {
     }
   }
 
+  if (pending) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-stone-50 p-4">
+        <div className="w-full max-w-md rounded-2xl border bg-white p-8 shadow-sm text-center">
+          <div className="text-4xl mb-4">⏳</div>
+          <h1 className="text-2xl font-black tracking-tight mb-2">TrimTime</h1>
+          <h2 className="text-lg font-semibold mb-2">Account Pending Approval</h2>
+          <p className="text-sm text-stone-500 mb-6">
+            Your account has been created and is waiting for admin approval.
+            You will be able to log in once your account is approved.
+          </p>
+          <a
+            href="/staff/login"
+            className="text-sm font-medium text-stone-900 hover:underline"
+          >
+            Back to Sign In
+          </a>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-stone-50 p-4">
       <form onSubmit={submit} className="w-full max-w-md rounded-2xl border bg-white p-8 shadow-sm">
         <div className="mb-6 text-center">
           <h1 className="text-2xl font-black tracking-tight">TrimTime</h1>
-          <p className="mt-1 text-sm text-stone-500">Create your owner account</p>
+          <p className="mt-1 text-sm text-stone-500">Create your account</p>
         </div>
 
         {error && (
@@ -56,6 +84,24 @@ export default function Register() {
         )}
 
         <div className="space-y-4">
+          <label className="block text-sm font-medium text-stone-700">
+            Account Type
+            <select
+              className="mt-1 w-full rounded-lg border px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-stone-900 bg-white"
+              value={form.role}
+              onChange={e => update('role', e.target.value)}
+            >
+              <option value="owner">Shop Owner</option>
+              <option value="barber">Barber</option>
+            </select>
+          </label>
+
+          {form.role === 'barber' && (
+            <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
+              Barber accounts are created by shop owners. Please contact your shop owner to get access.
+            </div>
+          )}
+
           <label className="block text-sm font-medium text-stone-700">
             Full Name
             <input
@@ -107,7 +153,7 @@ export default function Register() {
 
         <button
           type="submit"
-          disabled={submitting}
+          disabled={submitting || form.role === 'barber'}
           className="mt-6 w-full rounded-lg bg-stone-900 px-4 py-2.5 font-semibold text-white disabled:opacity-60"
         >
           {submitting ? 'Creating account…' : 'Create Account'}
