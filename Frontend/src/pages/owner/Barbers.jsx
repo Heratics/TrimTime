@@ -133,31 +133,18 @@ function BarberForm({ initial, onSave, onCancel }) {
   const [full_name, setFullName] = useState(initial?.full_name || '')
   const [bio, setBio] = useState(initial?.bio || '')
   const [profile_image_url, setProfileImageUrl] = useState(initial?.profile_image_url || '')
-  const [barberEmail, setBarberEmail] = useState('')
-  const [linkingUser, setLinkingUser] = useState(false)
-  const [linkError, setLinkError] = useState('')
   const [is_active, setIsActive] = useState(initial?.is_active !== false)
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
 
   async function submit(e) {
     e.preventDefault()
     const payload = { full_name, bio, profile_image_url, is_active }
-
-    // If creating a new barber and email is provided, look up the user_id
-    if (!initial && barberEmail.trim()) {
-      setLinkingUser(true)
-      setLinkError('')
-      try {
-        const res = await api.get('/auth/me') // just to verify token works
-        // We'll pass the email as-is; backend doesn't have a user-lookup endpoint exposed,
-        // so we note the limitation and skip auto-linking here
-        // The owner can re-edit the barber later once the barber has their account
-      } catch {
-        // silently skip
-      } finally {
-        setLinkingUser(false)
-      }
+    if (!initial && email.trim()) {
+      payload.email = email.trim()
+      payload.password = password
     }
-
     await onSave(payload)
   }
 
@@ -205,22 +192,47 @@ function BarberForm({ initial, onSave, onCancel }) {
         </div>
 
         {!initial && (
-          <div className="rounded-lg border border-blue-100 bg-blue-50 p-3 text-sm text-blue-800">
-            <strong>Barber login accounts:</strong> After adding the barber profile here, go to{' '}
-            <a href="/staff/register" target="_blank" rel="noreferrer" className="underline">
-              the staff registration page
-            </a>{' '}
-            — but register them with role <em>barber</em> by asking your developer to support it, or have the barber use the same credentials once an account is created for them via the admin panel.
+          <div className="rounded-xl border border-stone-200 bg-stone-50 p-4 space-y-3">
+            <p className="text-sm font-semibold text-stone-700">Login Account <span className="font-normal text-stone-400">(optional)</span></p>
+            <p className="text-xs text-stone-500">Fill these in to automatically create a login account for this barber.</p>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Email</label>
+              <input
+                type="email"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                className="mt-1 w-full rounded-lg border px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-stone-900"
+                placeholder="barber@email.com"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Temporary Password</label>
+              <div className="relative mt-1">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  className="w-full rounded-lg border px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-stone-900"
+                  placeholder="Min. 8 characters"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(p => !p)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-stone-400 hover:text-stone-700"
+                >
+                  {showPassword ? 'Hide' : 'Show'}
+                </button>
+              </div>
+            </div>
           </div>
         )}
 
         <div className="flex gap-2 pt-1">
           <button
             type="submit"
-            disabled={linkingUser}
-            className="rounded-lg bg-stone-900 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
+            className="rounded-lg bg-stone-900 px-4 py-2 text-sm font-semibold text-white"
           >
-            {linkingUser ? 'Saving…' : 'Save Barber'}
+            Save Barber
           </button>
           <button
             type="button"
