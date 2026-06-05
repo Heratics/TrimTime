@@ -18,10 +18,10 @@ async function getByRole(role) {
   return rows;
 }
 
-async function create({ full_name, email, password_hash, phone, role }) {
+async function create({ full_name, email, password_hash, phone, role, status = 'active' }) {
   const [result] = await pool.query(
-    'INSERT INTO users (full_name, email, password_hash, phone, role) VALUES (?, ?, ?, ?, ?)',
-    [full_name, email, password_hash, phone || null, role]
+    'INSERT INTO users (full_name, email, password_hash, phone, role, status) VALUES (?, ?, ?, ?, ?, ?)',
+    [full_name, email, password_hash, phone || null, role, status]
   );
   const id = result.insertId;
   return getById(id);

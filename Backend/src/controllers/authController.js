@@ -30,10 +30,9 @@ exports.register = async (req, res, next) => {
     if (existing) return res.status(409).json({ error: 'An account with this email already exists.' });
 
     const password_hash = await bcrypt.hash(password, SALT_ROUNDS);
-    const created = await userService.create({ full_name, email, password_hash, phone, role });
+    const created = await userService.create({ full_name, email, password_hash, phone, role, status: 'pending' });
 
-    const token = jwt.sign({ userId: created.id, role: created.role }, JWT_SECRET, { expiresIn: '7d' });
-    res.status(201).json({ user: sanitizeUser(created), token });
+    res.status(201).json({ pending: true, message: 'Your account is pending admin approval. You will be able to log in once approved.' });
   } catch (err) {
     next(err);
   }
@@ -50,6 +49,16 @@ exports.login = async (req, res, next) => {
 
     const ok = await bcrypt.compare(password, user.password_hash);
     if (!ok) return res.status(401).json({ error: 'Invalid credentials' });
+
+    if (user.status === 'pending') {
+      return res.status(403).json({ error: 'Your account is pending admin approval.' });
+    }
+    if (user.status === 'rejected') {
+      return res.status(403).json({ error: 'Your account registration was rejected.' });
+    }
+    if (user.status === 'disabled') {
+      return res.status(403).json({ error: 'Your account has been disabled. Contact support.' });
+    }
 
     const token = jwt.sign({ userId: user.id, role: user.role }, JWT_SECRET, { expiresIn: '7d' });
     res.json({ user: sanitizeUser(user), token });
