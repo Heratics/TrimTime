@@ -14,7 +14,31 @@ async function create(req, res, next) {
     // Owner can optionally provide user_id to link a user account to this barber
     // If not provided, barber profile exists without authentication
     // Can be linked later via PUT /api/barbers/:id with { user_id: ... }
-    const barber = await barberService.createBarber(shop.id, req.body);
+    const { email, password, ...barberData } = req.body;
+
+    let user_id = barberData.user_id || null;
+
+    if (email && password) {
+      const bcrypt = require('bcryptjs');
+      const userService = require('../services/userService');
+      const SALT_ROUNDS = process.env.SALT_ROUNDS ? Number(process.env.SALT_ROUNDS) : 12;
+
+      const existing = await userService.getByEmail(email);
+      if (existing) return res.status(409).json({ error: 'A user account with this email already exists.' });
+
+      const password_hash = await bcrypt.hash(password, SALT_ROUNDS);
+      const newUser = await userService.create({
+        full_name: barberData.full_name,
+        email,
+        password_hash,
+        phone: barberData.phone || null,
+        role: 'barber',
+        status: 'active'
+      });
+      user_id = newUser.id;
+    }
+
+    const barber = await barberService.createBarber(shop.id, { ...barberData, user_id });
     res.status(201).json({ barber });
   } catch (err) {
     next(err);
