@@ -7,6 +7,7 @@ const items = [
   { to: '/barber', label: 'Home' },
   { to: '/barber/appointments', label: 'My Appointments' },
   { to: '/barber/schedule', label: 'My Schedule' },
+  { to: '/barber/settings', label: 'Settings' },
 ]
 
 export default function BarberLayout() {

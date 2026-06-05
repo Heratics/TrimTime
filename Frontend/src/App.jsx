@@ -28,6 +28,7 @@ import Login from './pages/Auth/Login'
 import Register from './pages/Auth/Register'
 import ProtectedRoute from './components/ProtectedRoute'
 import auth from './services/auth'
+import BarberSettings from './pages/barber/Settings'
 
 export default function App() {
   return (
@@ -62,6 +63,7 @@ export default function App() {
         <Route index element={<BarberHome />} />
         <Route path="appointments" element={<BarberAppointments />} />
         <Route path="schedule" element={<BarberSchedule />} />
+        <Route path="settings" element={<BarberSettings />} />
       </Route>
 
       {/* Admin panel */}
