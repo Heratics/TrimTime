@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../../services/api'
+import ImageUpload from '../../components/ImageUpload'
 
 export default function SetupShop() {
   const navigate = useNavigate()
@@ -123,23 +124,16 @@ export default function SetupShop() {
           />
         </Field>
 
-        <Field label="Logo URL">
-          <input
-            value={form.logo_url}
-            onChange={e => update('logo_url', e.target.value)}
-            className="w-full rounded-lg border px-3 py-2.5"
-            placeholder="https://…"
-          />
-        </Field>
-
-        <Field label="Cover Image URL">
-          <input
-            value={form.cover_image_url}
-            onChange={e => update('cover_image_url', e.target.value)}
-            className="w-full rounded-lg border px-3 py-2.5"
-            placeholder="https://…"
-          />
-        </Field>
+        <ImageUpload
+          label="Logo"
+          value={form.logo_url}
+          onChange={v => update('logo_url', v)}
+        />
+        <ImageUpload
+          label="Cover Image"
+          value={form.cover_image_url}
+          onChange={v => update('cover_image_url', v)}
+        />
 
         <button
           type="submit"
