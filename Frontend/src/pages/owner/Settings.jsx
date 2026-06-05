@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import api from '../../services/api'
+import ImageUpload from '../../components/ImageUpload'
 
 export default function Settings() {
   const [tab, setTab] = useState('shop')
@@ -118,12 +119,16 @@ function ShopSettings() {
         <Field label="Google Maps URL">
           <input value={form.google_maps_url || ''} onChange={e => updateField('google_maps_url', e.target.value)} className="w-full rounded-lg border px-3 py-2.5" />
         </Field>
-        <Field label="Logo URL">
-          <input value={form.logo_url || ''} onChange={e => updateField('logo_url', e.target.value)} className="w-full rounded-lg border px-3 py-2.5" />
-        </Field>
-        <Field label="Cover Image URL">
-          <input value={form.cover_image_url || ''} onChange={e => updateField('cover_image_url', e.target.value)} className="w-full rounded-lg border px-3 py-2.5" />
-        </Field>
+        <ImageUpload
+          label="Logo"
+          value={form.logo_url || ''}
+          onChange={v => updateField('logo_url', v)}
+        />
+        <ImageUpload
+          label="Cover Image"
+          value={form.cover_image_url || ''}
+          onChange={v => updateField('cover_image_url', v)}
+        />
         <button
           type="submit"
           disabled={saving}

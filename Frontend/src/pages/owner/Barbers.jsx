@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { fetchBarbers, createBarber, updateBarber, deleteBarber } from '../../services/ownerService'
 import api from '../../services/api'
+import ImageUpload from '../../components/ImageUpload'
 
 export default function Barbers() {
   const [barbers, setBarbers] = useState([])
@@ -171,15 +172,11 @@ function BarberForm({ initial, onSave, onCancel }) {
             placeholder="Short bio shown on the public profile"
           />
         </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Profile Image URL</label>
-          <input
-            value={profile_image_url}
-            onChange={e => setProfileImageUrl(e.target.value)}
-            className="mt-1 w-full rounded-lg border px-3 py-2.5"
-            placeholder="https://…"
-          />
-        </div>
+        <ImageUpload
+          label="Profile Image"
+          value={profile_image_url}
+          onChange={v => setProfileImageUrl(v)}
+        />
         <div className="flex items-center gap-2">
           <input
             id="is_active"
