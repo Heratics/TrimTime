@@ -82,29 +82,20 @@ function Success({ shop, selection, appointment }){
         <div className="text-5xl mb-3">✅</div>
         <h1 className="text-2xl font-black text-green-700">Appointment Booked!</h1>
         <p className="mt-1 text-sm text-stone-500">Screenshot this page as your confirmation.</p>
-
         <div className="mt-6 rounded-2xl bg-stone-50 border p-5 text-left space-y-3">
-          <Row label="Confirmation #" value={`#${appointment.id}`} />
-          <Row label="Shop" value={shop.name} />
-          <Row label="Barber" value={selection.barber.full_name} />
-          <Row label="Service" value={selection.service.name} />
-          <Row label="Date" value={selection.date} />
-          <Row label="Time" value={selection.time} />
-          {appointment.customer_name && <Row label="Name" value={appointment.customer_name} />}
-          {appointment.customer_phone && <Row label="Phone" value={appointment.customer_phone} />}
+          <div className="flex justify-between text-sm"><span className="text-stone-500 font-medium">Confirmation #</span><span className="font-semibold text-stone-800">#{appointment.id}</span></div>
+          <div className="flex justify-between text-sm"><span className="text-stone-500 font-medium">Shop</span><span className="font-semibold text-stone-800">{shop.name}</span></div>
+          <div className="flex justify-between text-sm"><span className="text-stone-500 font-medium">Barber</span><span className="font-semibold text-stone-800">{selection.barber.full_name}</span></div>
+          <div className="flex justify-between text-sm"><span className="text-stone-500 font-medium">Service</span><span className="font-semibold text-stone-800">{selection.service.name}</span></div>
+          <div className="flex justify-between text-sm"><span className="text-stone-500 font-medium">Date</span><span className="font-semibold text-stone-800">{selection.date}</span></div>
+          <div className="flex justify-between text-sm"><span className="text-stone-500 font-medium">Time</span><span className="font-semibold text-stone-800">{selection.time}</span></div>
+          {appointment.customer_name ? <div className="flex justify-between text-sm"><span className="text-stone-500 font-medium">Name</span><span className="font-semibold text-stone-800">{appointment.customer_name}</span></div> : null}
+          {appointment.customer_phone ? <div className="flex justify-between text-sm"><span className="text-stone-500 font-medium">Phone</span><span className="font-semibold text-stone-800">{appointment.customer_phone}</span></div> : null}
           <div className="pt-2 border-t">
-            <span className="inline-block rounded-full bg-amber-100 text-amber-700 text-xs font-semibold px-3 py-1">
-              Pending confirmation by shop
-            </span>
+            <span className="inline-block rounded-full bg-amber-100 text-amber-700 text-xs font-semibold px-3 py-1">Pending confirmation by shop</span>
           </div>
         </div>
-
-        <Link
-          to={`/shop/${shop.slug}`}
-          className="mt-6 inline-block rounded-xl bg-stone-900 px-6 py-3 font-bold text-white"
-        >
-          Back to {shop.name}
-        </Link>
+        <Link to={`/shop/${shop.slug}`} className="mt-6 inline-block rounded-xl bg-stone-900 px-6 py-3 font-bold text-white">Back to {shop.name}</Link>
       </div>
     </div>
   )
