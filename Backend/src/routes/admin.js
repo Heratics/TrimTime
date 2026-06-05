@@ -19,6 +19,11 @@ router.get('/shops', adminController.listShops);
 router.put('/shops/:id', shopUpdateRules, runValidation, adminController.updateShop);
 
 router.get('/owners', adminController.listOwners);
+router.get('/owners/pending', adminController.listPendingOwners);
+router.put('/owners/:id/approve', adminController.approveUser);
+router.put('/owners/:id/reject', adminController.rejectUser);
+router.put('/owners/:id/disable', adminController.disableOwner);
+router.delete('/owners/:id', adminController.deleteOwner);
 
 router.get('/barbers', adminController.listBarbers);
 router.put('/barbers/:id/status', adminController.updateBarberStatus);
