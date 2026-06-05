@@ -72,7 +72,49 @@ export default function BookAppointment(){
 function Section({ title, children }){ return <section className="mt-6 space-y-3 rounded-2xl border bg-white p-4 shadow-sm sm:p-6"><h2 className="text-xl font-black">{title}</h2>{children}</section> }
 function Continue({ disabled, onClick }){ return <button type="button" disabled={disabled} onClick={onClick} className="w-full rounded-xl bg-stone-900 px-4 py-3 font-bold text-white disabled:opacity-40">Continue</button> }
 function Navigation({ onBack, onNext, disabled, nextText='Continue' }){ return <div className="flex gap-2"><button type="button" onClick={onBack} className="rounded-xl border px-4 py-3 font-bold">Back</button><button type="button" disabled={disabled} onClick={onNext} className="flex-1 rounded-xl bg-stone-900 px-4 py-3 font-bold text-white disabled:opacity-40">{nextText}</button></div> }
-function Success({ shop, selection, appointment }){ return <div className="mx-auto max-w-xl px-4 py-16 text-center"><div className="rounded-3xl border bg-white p-8 shadow-sm"><div className="text-4xl font-black text-green-600">Booked</div><h1 className="mt-3 text-2xl font-black">Your appointment is confirmed for review.</h1><p className="mt-3 text-stone-600">{shop.name}<br />{selection.date} at {selection.time}<br />{selection.barber.full_name} - {selection.service.name}</p><p className="mt-3 text-sm text-stone-500">Appointment #{appointment.id}</p><Link to={`/shop/${shop.slug}`} className="mt-6 inline-block rounded-xl bg-stone-900 px-5 py-3 font-bold text-white">Back to shop</Link></div></div> }
 function Message({ text }){ return <div className="mx-auto max-w-6xl px-4 py-14 text-stone-600">{text}</div> }
 function today(){ const now = new Date(); return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}` }
 function getApiError(err){ return err?.response?.data?.error || err?.response?.data?.errors?.[0]?.msg || 'Something went wrong. Please try again.' }
+function Success({ shop, selection, appointment }){
+  return (
+    <div className="mx-auto max-w-xl px-4 py-10">
+      <div className="rounded-3xl border-2 border-green-200 bg-white p-8 shadow-md text-center">
+        <div className="text-5xl mb-3">✅</div>
+        <h1 className="text-2xl font-black text-green-700">Appointment Booked!</h1>
+        <p className="mt-1 text-sm text-stone-500">Screenshot this page as your confirmation.</p>
+
+        <div className="mt-6 rounded-2xl bg-stone-50 border p-5 text-left space-y-3">
+          <Row label="Confirmation #" value={`#${appointment.id}`} />
+          <Row label="Shop" value={shop.name} />
+          <Row label="Barber" value={selection.barber.full_name} />
+          <Row label="Service" value={selection.service.name} />
+          <Row label="Date" value={selection.date} />
+          <Row label="Time" value={selection.time} />
+          {appointment.customer_name && <Row label="Name" value={appointment.customer_name} />}
+          {appointment.customer_phone && <Row label="Phone" value={appointment.customer_phone} />}
+          <div className="pt-2 border-t">
+            <span className="inline-block rounded-full bg-amber-100 text-amber-700 text-xs font-semibold px-3 py-1">
+              Pending confirmation by shop
+            </span>
+          </div>
+        </div>
+
+        <Link
+          to={`/shop/${shop.slug}`}
+          className="mt-6 inline-block rounded-xl bg-stone-900 px-6 py-3 font-bold text-white"
+        >
+          Back to {shop.name}
+        </Link>
+      </div>
+    </div>
+  )
+}
+
+function Row({ label, value }){
+  return (
+    <div className="flex justify-between text-sm">
+      <span className="text-stone-500 font-medium">{label}</span>
+      <span className="font-semibold text-stone-800">{value}</span>
+    </div>
+  )
+}
