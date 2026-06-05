@@ -95,3 +95,29 @@ exports.lookupByEmail = async (req, res, next) => {
     next(err);
   }
 };
+
+// PUT /api/auth/password
+exports.changePassword = async (req, res, next) => {
+  try {
+    const { current_password, new_password } = req.body;
+    if (!current_password || !new_password) {
+      return res.status(400).json({ error: 'current_password and new_password are required' });
+    }
+    if (new_password.length < 8) {
+      return res.status(400).json({ error: 'New password must be at least 8 characters' });
+    }
+
+    const user = await userService.getById(req.user.userId);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    const ok = await bcrypt.compare(current_password, user.password_hash);
+    if (!ok) return res.status(401).json({ error: 'Current password is incorrect' });
+
+    const password_hash = await bcrypt.hash(new_password, SALT_ROUNDS);
+    await userService.updateById(user.id, { password_hash });
+
+    res.json({ message: 'Password updated successfully' });
+  } catch (err) {
+    next(err);
+  }
+};
