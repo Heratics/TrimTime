@@ -27,4 +27,18 @@ async function create({ full_name, email, password_hash, phone, role }) {
   return getById(id);
 }
 
-module.exports = { getByEmail, getById, getByRole, create };
+async function updateById(id, fields) {
+  const allowed = ['full_name', 'email', 'phone', 'password_hash', 'role', 'status'];
+  const keys = Object.keys(fields).filter(k => allowed.includes(k));
+  if (keys.length === 0) return getById(id);
+  const sets = keys.map(k => `${k} = ?`).join(', ');
+  const values = keys.map(k => fields[k]);
+  await pool.query(`UPDATE users SET ${sets} WHERE id = ?`, [...values, id]);
+  return getById(id);
+}
+
+async function deleteById(id) {
+  await pool.query('DELETE FROM users WHERE id = ?', [id]);
+}
+
+module.exports = { getByEmail, getById, getByRole, create, updateById, deleteById };
