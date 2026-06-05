@@ -178,6 +178,71 @@ async function listUsers(req, res, next) {
   }
 }
 
+async function listPendingOwners(req, res, next) {
+  try {
+    const [rows] = await require('../db/db').query(
+      "SELECT id, full_name, email, phone, created_at FROM users WHERE role = 'owner' AND status = 'pending' ORDER BY created_at DESC"
+    );
+    res.json({ owners: rows });
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function approveUser(req, res, next) {
+  try {
+    const user = await userService.getById(Number(req.params.id));
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    const updated = await userService.updateById(user.id, { status: 'active' });
+    const { password_hash: _, ...safe } = updated;
+    res.json({ user: safe });
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function rejectUser(req, res, next) {
+  try {
+    const user = await userService.getById(Number(req.params.id));
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    const updated = await userService.updateById(user.id, { status: 'rejected' });
+    const { password_hash: _, ...safe } = updated;
+    res.json({ user: safe });
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function disableOwner(req, res, next) {
+  try {
+    const user = await userService.getById(Number(req.params.id));
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    if (user.role !== 'owner') return res.status(400).json({ error: 'User is not an owner' });
+    const newStatus = user.status === 'disabled' ? 'active' : 'disabled';
+    const updated = await userService.updateById(user.id, { status: newStatus });
+    const { password_hash: _, ...safe } = updated;
+    res.json({ user: safe });
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function deleteOwner(req, res, next) {
+  try {
+    const user = await userService.getById(Number(req.params.id));
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    if (user.role !== 'owner') return res.status(400).json({ error: 'User is not an owner' });
+
+    const shop = await shopService.getByOwnerId(user.id);
+    if (shop) return res.status(400).json({ error: 'Cannot delete owner while they have an active shop. Delete the shop first.' });
+
+    await userService.deleteById(user.id);
+    res.json({ message: 'Owner deleted' });
+  } catch (err) {
+    next(err);
+  }
+}
+
 module.exports = {
   getDashboard,
   listShops,
@@ -191,4 +256,9 @@ module.exports = {
   updateServiceStatus,
   createBarberUser,
   listUsers,
+  listPendingOwners,
+  approveUser,
+  rejectUser,
+  disableOwner,
+  deleteOwner,
 };
