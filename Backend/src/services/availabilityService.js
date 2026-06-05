@@ -57,7 +57,7 @@ class AvailabilityService {
     }
 
     // 3) Barber must not be on time off
-    const timeOff = await barberTimeOffService.getTimeOffByBarberId(barberId);
+    const timeOff = await barberTimeOffService.getBarberTimeOffByBarberId(barberId);
     const onTimeOff = timeOff.find(t => {
       const start = new Date(t.start_date);
       const end = new Date(t.end_date);
