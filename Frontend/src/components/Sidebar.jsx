@@ -1,5 +1,5 @@
 import React from 'react'
-import { NavLink } from 'react-router-dom'
+import { NavLink, Link } from 'react-router-dom'
 
 const ownerItems = [
   { to: '/owner', label: 'Home' },
@@ -15,7 +15,7 @@ const ROOT_PATHS = ['/owner', '/barber', '/admin']
 export default function Sidebar({ items = ownerItems }) {
   return (
     <aside className="w-56 bg-white border-r hidden md:flex flex-col shrink-0">
-      <div className="p-4 font-black text-lg tracking-tight border-b">TrimTime</div>
+      <Link to="/" className="p-4 font-black text-lg tracking-tight border-b hover:text-stone-600 transition-colors">TrimTime</Link>
       <nav className="p-3 space-y-0.5 flex-1">
         {items.map(i => (
           <NavLink
