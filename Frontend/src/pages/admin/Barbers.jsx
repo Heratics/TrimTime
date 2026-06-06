@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react'
-import { fetchAdminBarbers, updateAdminBarberStatus } from '../../services/adminService'
-import api from '../../services/api'
 import { fetchAdminBarbers, updateAdminBarberStatus, deleteAdminBarber } from '../../services/adminService'
+import api from '../../services/api'
 
 export default function Barbers() {
   const [barbers, setBarbers] = useState([])
