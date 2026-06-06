@@ -77,4 +77,58 @@ async function updateProfile(req, res, next) {
   }
 }
 
-module.exports = { getDashboard, getSchedule, updateProfile };
+async function addSchedule(req, res, next) {
+  try {
+    const barber = await getCurrentBarber(req.user.userId);
+    if (!barber) return res.status(404).json({ error: 'Barber profile not found' });
+    const schedule = await barberScheduleService.createBarberSchedule(barber.id, req.body);
+    res.status(201).json({ schedule });
+  } catch (err) { next(err); }
+}
+
+async function deleteSchedule(req, res, next) {
+  try {
+    const barber = await getCurrentBarber(req.user.userId);
+    if (!barber) return res.status(404).json({ error: 'Barber profile not found' });
+    await barberScheduleService.deleteBarberScheduleById(Number(req.params.id));
+    res.json({ message: 'Deleted' });
+  } catch (err) { next(err); }
+}
+
+async function addBreak(req, res, next) {
+  try {
+    const barber = await getCurrentBarber(req.user.userId);
+    if (!barber) return res.status(404).json({ error: 'Barber profile not found' });
+    const item = await barberBreakService.createBarberBreak(barber.id, req.body);
+    res.status(201).json({ break: item });
+  } catch (err) { next(err); }
+}
+
+async function deleteBreak(req, res, next) {
+  try {
+    const barber = await getCurrentBarber(req.user.userId);
+    if (!barber) return res.status(404).json({ error: 'Barber profile not found' });
+    await barberBreakService.deleteBarberBreakById(Number(req.params.id));
+    res.json({ message: 'Deleted' });
+  } catch (err) { next(err); }
+}
+
+async function addTimeOff(req, res, next) {
+  try {
+    const barber = await getCurrentBarber(req.user.userId);
+    if (!barber) return res.status(404).json({ error: 'Barber profile not found' });
+    const item = await barberTimeOffService.createBarberTimeOff(barber.id, req.body);
+    res.status(201).json({ timeOff: item });
+  } catch (err) { next(err); }
+}
+
+async function deleteTimeOff(req, res, next) {
+  try {
+    const barber = await getCurrentBarber(req.user.userId);
+    if (!barber) return res.status(404).json({ error: 'Barber profile not found' });
+    await barberTimeOffService.deleteBarberTimeOffById(Number(req.params.id));
+    res.json({ message: 'Deleted' });
+  } catch (err) { next(err); }
+}
+
+module.exports = { getDashboard, getSchedule, updateProfile, addSchedule, deleteSchedule, addBreak, deleteBreak, addTimeOff, deleteTimeOff };
