@@ -64,4 +64,17 @@ async function getSchedule(req, res, next) {
   }
 }
 
-module.exports = { getDashboard, getSchedule };
+async function updateProfile(req, res, next) {
+  try {
+    const barber = await getCurrentBarber(req.user.userId);
+    if (!barber) return res.status(404).json({ error: 'Barber profile not found' });
+
+    const { full_name, bio, profile_image_url } = req.body;
+    const updated = await barberService.updateById(barber.id, { full_name, bio, profile_image_url });
+    res.json({ barber: updated });
+  } catch (err) {
+    next(err);
+  }
+}
+
+module.exports = { getDashboard, getSchedule, updateProfile };

@@ -5,5 +5,6 @@ const barberDashboardController = require('../controllers/barberDashboardControl
 
 router.get('/dashboard', requireAuth, requireBarber, barberDashboardController.getDashboard);
 router.get('/schedule', requireAuth, requireBarber, barberDashboardController.getSchedule);
+router.put('/profile', requireAuth, requireBarber, barberDashboardController.updateProfile);
 
 module.exports = router;
