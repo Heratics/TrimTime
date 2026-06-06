@@ -27,6 +27,7 @@ router.put('/appointments/:id/status', adminController.updateAppointmentStatus);
 
 router.get('/barbers', adminController.listBarbers);
 router.put('/barbers/:id/status', adminController.updateBarberStatus);
+router.put('/barbers/:id', adminController.updateBarber);
 router.delete('/barbers/:id', adminController.deleteBarber);
 
 router.get('/shops', adminController.listShops);

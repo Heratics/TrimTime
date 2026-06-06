@@ -6,6 +6,7 @@ export default function Barbers() {
   const [barbers, setBarbers] = useState([])
   const [error, setError] = useState('')
   const [showCreateForm, setShowCreateForm] = useState(false)
+  const [editing, setEditing] = useState(null)
 
   useEffect(() => { load() }, [])
 
@@ -80,7 +81,14 @@ export default function Barbers() {
               </div>
             </div>
             <div className="flex gap-2">
-              <div className="flex gap-2">
+             <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setEditing(barber)}
+                className="rounded-lg border px-3 py-2 text-sm"
+              >
+                Edit
+              </button>
               <button
                 type="button"
                 onClick={() => toggle(barber)}
@@ -96,13 +104,6 @@ export default function Barbers() {
                 Delete
               </button>
             </div>
-              <button
-                type="button"
-                onClick={() => remove(barber)}
-                className="rounded-lg bg-red-500 px-3 py-2 text-sm text-white"
-              >
-                Delete
-              </button>
             </div>
           </div>
         ))}
@@ -190,3 +191,34 @@ function Field({ label, children }) {
 function ErrorMessage({ text }) {
   return <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">{text}</div>
 }
+
+{editing && (
+        <div className="rounded-2xl border bg-white p-5 shadow-sm">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-semibold">Edit {editing.full_name}</h2>
+            <button onClick={() => setEditing(null)} className="text-sm text-gray-500">Close</button>
+          </div>
+          <div className="space-y-3">
+            <Field label="Full Name">
+              <input value={editing.full_name || ''} onChange={e => setEditing({ ...editing, full_name: e.target.value })} className="w-full rounded-lg border px-3 py-2" />
+            </Field>
+            <Field label="Bio">
+              <textarea value={editing.bio || ''} onChange={e => setEditing({ ...editing, bio: e.target.value })} rows={2} className="w-full rounded-lg border px-3 py-2" />
+            </Field>
+          </div>
+          <button
+            onClick={async () => {
+              try {
+                await api.put(`/admin/barbers/${editing.id}`, { full_name: editing.full_name, bio: editing.bio })
+                setEditing(null)
+                await load()
+              } catch {
+                setError('Failed to save barber.')
+              }
+            }}
+            className="mt-4 rounded-lg bg-stone-900 px-4 py-2 text-sm font-semibold text-white"
+          >
+            Save
+          </button>
+        </div>
+      )}

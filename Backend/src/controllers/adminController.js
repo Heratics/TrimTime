@@ -281,9 +281,17 @@ async function deleteService(req, res, next) {
   } catch (err) { next(err); }
 }
 
+async function updateBarber(req, res, next) {
+  try {
+    const updated = await barberService.updateById(Number(req.params.id), req.body);
+    res.json({ barber: updated });
+  } catch (err) { next(err); }
+}
+
 module.exports = {
   getDashboard, listShops, listOwners, listBarbers, listServices, listAppointments,
   updateAppointmentStatus, updateShop, updateBarberStatus, updateServiceStatus,
   createBarberUser, listUsers, listPendingOwners, approveUser, rejectUser,
-  disableOwner, deleteOwner, deleteBarber, toggleShop, deleteShop, updateService, deleteService
+  disableOwner, deleteOwner, deleteBarber, toggleShop, deleteShop, updateService, deleteService,
+  deleteBarber, updateBarber, toggleShop
 };
