@@ -96,7 +96,8 @@ async function createAppointment(req, res, next) {
         await conn.commit();
         conn.release();
 
-        return res.status(201).json({ appointment: created });
+        const appointment = await appointmentsService.getById(created);
+        return res.status(201).json({ appointment });
       } catch (err) {
         // Duplicate-key error protection: unique constraint on barber/date/time
         if (err && (err.code === 'ER_DUP_ENTRY' || err.errno === 1062)) {

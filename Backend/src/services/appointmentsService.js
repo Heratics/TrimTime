@@ -60,7 +60,7 @@ class AppointmentsService {
       'INSERT INTO appointments (shop_id, barber_id, service_id, service_name, service_price, service_duration, customer_name, customer_phone, appointment_date, appointment_time, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
       [shop_id, barber_id, service_id, service_name, service_price, service_duration, customer_name, customer_phone, appointment_date, appointment_time, status]
     );
-    return this.getById(result.insertId);
+    return result.insertId;
   }
 
   async updateStatus(id, newStatus) {
