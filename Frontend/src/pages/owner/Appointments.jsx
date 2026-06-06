@@ -34,7 +34,7 @@ export default function Appointments(){
         {appointments.map(a=> (
           <div key={a.id} className="p-3 bg-white rounded shadow flex justify-between">
             <div>
-              <div className="font-semibold">{a.customer_name} — {a.appointment_date} {a.appointment_time}</div>
+              <div className="font-semibold">{a.customer_name} — {new Date(a.appointment_date).toLocaleDateString('en-GB')} {a.appointment_time?.slice(0,5)}</div>
               <div className="text-sm text-gray-600">{a.service_name} • {a.service_duration} min • {a.status}</div>
             </div>
             <div className="space-x-2">

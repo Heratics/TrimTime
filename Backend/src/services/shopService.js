@@ -45,6 +45,13 @@ async function updateById(id, data) {
 }
 
 async function deleteById(id) {
+  await pool.query('DELETE FROM appointments WHERE shop_id = ?', [id]);
+  await pool.query('DELETE FROM barber_schedules WHERE barber_id IN (SELECT id FROM barbers WHERE shop_id = ?)', [id]);
+  await pool.query('DELETE FROM barber_breaks WHERE barber_id IN (SELECT id FROM barbers WHERE shop_id = ?)', [id]);
+  await pool.query('DELETE FROM barber_time_off WHERE barber_id IN (SELECT id FROM barbers WHERE shop_id = ?)', [id]);
+  await pool.query('DELETE FROM services WHERE shop_id = ?', [id]);
+  await pool.query('DELETE FROM barbers WHERE shop_id = ?', [id]);
+  await pool.query('DELETE FROM shop_hours WHERE shop_id = ?', [id]);
   await pool.query('DELETE FROM shops WHERE id = ?', [id]);
 }
 
