@@ -180,8 +180,8 @@ async function listUsers(req, res, next) {
 
 async function listPendingOwners(req, res, next) {
   try {
-    const [rows] = await require('../db/db').query(
-      "SELECT id, full_name, email, phone, created_at FROM users WHERE role = 'owner' AND status = 'pending' ORDER BY created_at DESC"
+    const [rows] = await pool.query(
+    "SELECT id, full_name, email, phone, status, created_at FROM users WHERE role = 'owner' AND status != 'pending' ORDER BY created_at DESC"
     );
     res.json({ owners: rows });
   } catch (err) {
