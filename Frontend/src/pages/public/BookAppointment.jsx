@@ -40,7 +40,7 @@ export default function BookAppointment(){
     setSubmitting(true); setError('')
     try {
       const response = await createAppointment({ shop_id:shop.id, barber_id:selection.barber.id, service_id:selection.service.id, appointment_date:selection.date, appointment_time:selection.time, ...form })
-      setAppointment(response.appointment); setStep(6)
+      setAppointment(response.appointment)
     } catch (err) {
       setError(getApiError(err))
     } finally {
