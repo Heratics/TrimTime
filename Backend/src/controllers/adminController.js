@@ -243,22 +243,46 @@ async function deleteOwner(req, res, next) {
   }
 }
 
+async function deleteBarber(req, res, next) {
+  try {
+    await barberService.deleteById(Number(req.params.id));
+    res.json({ message: 'Barber deleted' });
+  } catch (err) { next(err); }
+}
+
+async function toggleShop(req, res, next) {
+  try {
+    const shop = await shopService.getById(Number(req.params.id));
+    if (!shop) return res.status(404).json({ error: 'Shop not found' });
+    const updated = await shopService.updateById(shop.id, { is_active: !shop.is_active });
+    res.json({ shop: updated });
+  } catch (err) { next(err); }
+}
+
+async function deleteShop(req, res, next) {
+  try {
+    await shopService.deleteById(Number(req.params.id));
+    res.json({ message: 'Shop deleted' });
+  } catch (err) { next(err); }
+}
+
+async function updateService(req, res, next) {
+  try {
+    const updated = await servicesService.updateById(Number(req.params.id), req.body);
+    res.json({ service: updated });
+  } catch (err) { next(err); }
+}
+
+async function deleteService(req, res, next) {
+  try {
+    await servicesService.deleteById(Number(req.params.id));
+    res.json({ message: 'Service deleted' });
+  } catch (err) { next(err); }
+}
+
 module.exports = {
-  getDashboard,
-  listShops,
-  listOwners,
-  listBarbers,
-  listServices,
-  listAppointments,
-  updateAppointmentStatus,
-  updateShop,
-  updateBarberStatus,
-  updateServiceStatus,
-  createBarberUser,
-  listUsers,
-  listPendingOwners,
-  approveUser,
-  rejectUser,
-  disableOwner,
-  deleteOwner,
+  getDashboard, listShops, listOwners, listBarbers, listServices, listAppointments,
+  updateAppointmentStatus, updateShop, updateBarberStatus, updateServiceStatus,
+  createBarberUser, listUsers, listPendingOwners, approveUser, rejectUser,
+  disableOwner, deleteOwner, deleteBarber, toggleShop, deleteShop, updateService, deleteService
 };

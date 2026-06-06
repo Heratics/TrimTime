@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { fetchAdminBarbers, updateAdminBarberStatus } from '../../services/adminService'
 import api from '../../services/api'
+import { fetchAdminBarbers, updateAdminBarberStatus, deleteAdminBarber } from '../../services/adminService'
 
 export default function Barbers() {
   const [barbers, setBarbers] = useState([])
@@ -25,6 +26,16 @@ export default function Barbers() {
       await load()
     } catch {
       setError('Unable to update that barber.')
+    }
+  }
+
+  async function remove(barber) {
+    if (!confirm(`Permanently delete ${barber.full_name}? This cannot be undone.`)) return
+    try {
+      await deleteAdminBarber(barber.id)
+      await load()
+    } catch (err) {
+      setError(err?.response?.data?.error || 'Failed to delete barber.')
     }
   }
 
@@ -69,13 +80,22 @@ export default function Barbers() {
                 }
               </div>
             </div>
-            <button
-              type="button"
-              onClick={() => toggle(barber)}
-              className={`rounded-lg px-3 py-2 text-sm text-white ${barber.is_active ? 'bg-red-500' : 'bg-green-600'}`}
-            >
-              {barber.is_active ? 'Disable' : 'Enable'}
-            </button>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => toggle(barber)}
+                className={`rounded-lg px-3 py-2 text-sm text-white ${barber.is_active ? 'bg-amber-500' : 'bg-green-600'}`}
+              >
+                {barber.is_active ? 'Disable' : 'Enable'}
+              </button>
+              <button
+                type="button"
+                onClick={() => remove(barber)}
+                className="rounded-lg bg-red-500 px-3 py-2 text-sm text-white"
+              >
+                Delete
+              </button>
+            </div>
           </div>
         ))}
         {barbers.length === 0 && (

@@ -32,7 +32,7 @@ async function getByOwnerId(owner_user_id) {
 async function updateById(id, data) {
   const fields = [];
   const values = [];
-  for (const key of ['name','slug','description','phone','email','country','city','district','address','latitude','longitude','google_maps_url','logo_url','cover_image_url']){
+  for (const key of ['name','slug','description','phone','email','country','city','district','address','latitude','longitude','google_maps_url','logo_url','cover_image_url','is_active']){
     if (data[key] !== undefined) {
       fields.push(`${key} = ?`);
       values.push(data[key]);
@@ -44,4 +44,8 @@ async function updateById(id, data) {
   return getById(id);
 }
 
-module.exports = { createShop, getById, getBySlug, getAll, getByOwnerId, updateById };
+async function deleteById(id) {
+  await pool.query('DELETE FROM shops WHERE id = ?', [id]);
+}
+
+module.exports = { createShop, getById, getBySlug, getAll, getByOwnerId, updateById, deleteById };
