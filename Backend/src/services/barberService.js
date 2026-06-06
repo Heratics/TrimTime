@@ -43,7 +43,7 @@ async function updateById(id, data) {
 
 async function deleteById(id) {
   await pool.query('DELETE FROM appointments WHERE barber_id = ?', [id]);
-  await pool.query('DELETE FROM barber_schedules WHERE barber_id = ?', [id]);
+  await pool.query('DELETE FROM barber_schedule WHERE barber_id = ?', [id]);
   await pool.query('DELETE FROM barber_breaks WHERE barber_id = ?', [id]);
   await pool.query('DELETE FROM barber_time_off WHERE barber_id = ?', [id]);
   await pool.query('DELETE FROM barbers WHERE id = ?', [id]);
