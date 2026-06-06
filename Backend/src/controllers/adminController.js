@@ -1,3 +1,4 @@
+const pool = require('../db/db');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const appointmentsService = require('../services/appointmentsService');

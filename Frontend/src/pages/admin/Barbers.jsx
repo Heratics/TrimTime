@@ -80,6 +80,7 @@ export default function Barbers() {
               </div>
             </div>
             <div className="flex gap-2">
+              <div className="flex gap-2">
               <button
                 type="button"
                 onClick={() => toggle(barber)}
@@ -87,6 +88,14 @@ export default function Barbers() {
               >
                 {barber.is_active ? 'Disable' : 'Enable'}
               </button>
+              <button
+                type="button"
+                onClick={() => remove(barber)}
+                className="rounded-lg bg-red-500 px-3 py-2 text-sm text-white"
+              >
+                Delete
+              </button>
+            </div>
               <button
                 type="button"
                 onClick={() => remove(barber)}
