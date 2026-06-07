@@ -2,7 +2,7 @@ const pool = require('../db/db');
 
 async function getByShopId(shopId) {
   const [rows] = await pool.query(
-    'SELECT * FROM products WHERE shop_id = ? AND is_active = 1 ORDER BY created_at DESC',
+    'SELECT * FROM products WHERE shop_id = ? AND is_active = 1 ORDER BY id DESC',
     [shopId]
   );
   return rows;
