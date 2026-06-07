@@ -44,7 +44,10 @@ async function listShops(req, res, next) {
 
 async function listOwners(req, res, next) {
   try {
-    res.json({ owners: await userService.getByRole('owner') });
+    const [rows] = await pool.query(
+      "SELECT id, full_name, email, phone, status, created_at FROM users WHERE role = 'owner' AND status IN ('active', 'disabled') ORDER BY created_at DESC"
+    );
+    res.json({ owners: rows });
   } catch (err) {
     next(err);
   }
@@ -182,7 +185,7 @@ async function listUsers(req, res, next) {
 async function listPendingOwners(req, res, next) {
   try {
     const [rows] = await pool.query(
-      "SELECT id, full_name, email, phone, status, created_at FROM users WHERE role = 'owner' AND status IN ('active', 'disabled') ORDER BY created_at DESC"
+      "SELECT id, full_name, email, phone, created_at FROM users WHERE role = 'owner' AND status = 'pending' ORDER BY created_at DESC"
     );
     res.json({ owners: rows });
   } catch (err) {
@@ -292,6 +295,5 @@ module.exports = {
   getDashboard, listShops, listOwners, listBarbers, listServices, listAppointments,
   updateAppointmentStatus, updateShop, updateBarberStatus, updateServiceStatus,
   createBarberUser, listUsers, listPendingOwners, approveUser, rejectUser,
-  disableOwner, deleteOwner, deleteBarber, toggleShop, deleteShop, updateService, deleteService,
-  deleteBarber, updateBarber, toggleShop
+  disableOwner, deleteOwner, deleteBarber, updateBarber, toggleShop, deleteShop, updateService, deleteService
 };
