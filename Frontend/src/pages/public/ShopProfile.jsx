@@ -32,6 +32,28 @@ export default function ShopProfile(){
           <section><h2 className="text-xl font-black">Opening hours</h2><div className="mt-3 rounded-2xl border bg-white p-4">{shop.hours.map(hour=><div key={hour.id} className="flex justify-between border-b py-2 text-sm last:border-0"><span>{days[hour.day_of_week]}</span><span>{hour.is_closed ? 'Closed' : `${hour.open_time.slice(0, 5)} - ${hour.close_time.slice(0, 5)}`}</span></div>)}</div></section>
         </div>
         <section className="mt-6"><h2 className="text-xl font-black">Services</h2><div className="mt-3 grid gap-3 sm:grid-cols-2">{shop.services.map(service=><ServiceCard key={service.id} service={service} />)}</div>{!shop.services.length && <Empty text="No active services listed." />}</section>
+        {shop.products?.length > 0 && (
+          <section className="mt-6">
+            <h2 className="text-xl font-black">Products</h2>
+            <div className="mt-3 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {shop.products.map(product => (
+                <div key={product.id} className="rounded-2xl border bg-white shadow-sm overflow-hidden">
+                  {product.image_url
+                    ? <img src={product.image_url} alt={product.name} className="h-44 w-full object-cover" />
+                    : <div className="h-44 bg-stone-100 flex items-center justify-center text-stone-400 text-sm">No image</div>
+                  }
+                  <div className="p-4">
+                    <div className="font-bold">{product.name}</div>
+                    {product.description && <p className="text-sm text-gray-500 mt-1">{product.description}</p>}
+                    <div className="mt-2 font-semibold text-amber-600">
+                      {product.price ? `${product.price} JOD` : ''}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
       </div>
     </div>
   )

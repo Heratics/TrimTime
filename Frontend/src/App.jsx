@@ -29,6 +29,7 @@ import Register from './pages/Auth/Register'
 import ProtectedRoute from './components/ProtectedRoute'
 import auth from './services/auth'
 import BarberSettings from './pages/barber/Settings'
+import OwnerProducts from './pages/owner/Products'
 
 export default function App() {
   return (
@@ -56,6 +57,7 @@ export default function App() {
         <Route path="services" element={<Services />} />
         <Route path="scheduling" element={<Scheduling />} />
         <Route path="settings" element={<Settings />} />
+        <Route path="products" element={<OwnerProducts />} />
       </Route>
 
       {/* Barber portal */}

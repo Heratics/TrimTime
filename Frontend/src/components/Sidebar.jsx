@@ -7,6 +7,7 @@ const ownerItems = [
   { to: '/owner/barbers', label: 'Barbers' },
   { to: '/owner/services', label: 'Services' },
   { to: '/owner/scheduling', label: 'Scheduling' },
+  { to: '/owner/products', label: 'Products' },
   { to: '/owner/settings', label: 'Settings' },
 ]
 

@@ -2,6 +2,7 @@ const barberService = require('../services/barberService');
 const servicesService = require('../services/servicesService');
 const shopHoursService = require('../services/shopHoursService');
 const shopService = require('../services/shopService');
+const productService = require('../services/productService');
 
 const dayNumbers = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 };
 
@@ -26,6 +27,7 @@ async function getPublicShop(shop) {
     shopHoursService.getShopHoursByShopId(shop.id),
     barberService.getByShopId(shop.id),
     servicesService.getByShopId(shop.id),
+    productService.getByShopId(shop.id),
   ]);
 
   const { owner_user_id, ...publicShop } = shop;
@@ -36,6 +38,7 @@ async function getPublicShop(shop) {
       .filter(barber => barber.is_active)
       .map(({ user_id, ...barber }) => barber),
     services: services.filter(service => service.is_active),
+    products,
     is_open_now: isOpenNow(hours),
   };
 }
