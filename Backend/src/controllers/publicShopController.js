@@ -23,7 +23,7 @@ function isOpenNow(hours, now = new Date()) {
 }
 
 async function getPublicShop(shop) {
-  const [hours, barbers, services] = await Promise.all([
+  const [hours, barbers, services, products] = await Promise.all([
     shopHoursService.getShopHoursByShopId(shop.id),
     barberService.getByShopId(shop.id),
     servicesService.getByShopId(shop.id),
