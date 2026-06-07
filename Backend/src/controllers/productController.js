@@ -7,7 +7,10 @@ async function list(req, res, next) {
     if (!shop) return res.status(404).json({ error: 'Shop not found' });
     const products = await productService.getByShopId(shop.id);
     res.json({ products });
-  } catch (err) { next(err); }
+  } catch (err) {
+    console.error('PRODUCTS LIST ERROR:', err.message, err.stack);
+    next(err);
+  }
 }
 
 async function create(req, res, next) {
