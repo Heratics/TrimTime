@@ -2,7 +2,9 @@ const shopHoursService = require('../services/shopHoursService');
 const shopService = require('../services/shopService');
 
 function validateTimeRange(open_time, close_time) {
-  if (open_time >= close_time) {
+  // Allow overnight hours e.g. 20:00 - 04:00
+  // Only reject if times are exactly equal
+  if (open_time == close_time) {
     return { valid: false, error: 'Close time must be after open time' };
   }
   return { valid: true };
