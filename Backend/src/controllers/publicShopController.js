@@ -19,7 +19,13 @@ function isOpenNow(hours, now = new Date()) {
   if (!dayHours || dayHours.is_closed) return false;
 
   const currentTime = `${getPart('hour')}:${getPart('minute')}`;
-  return currentTime >= dayHours.open_time.slice(0, 5) && currentTime < dayHours.close_time.slice(0, 5);
+  const open = dayHours.open_time.slice(0, 5);
+  const close = dayHours.close_time.slice(0, 5);
+  // Overnight hours e.g. 11:00 - 00:30
+  if (close <= open) {
+    return currentTime >= open || currentTime < close;
+  }
+  return currentTime >= open && currentTime < close;
 }
 
 async function getPublicShop(shop) {
