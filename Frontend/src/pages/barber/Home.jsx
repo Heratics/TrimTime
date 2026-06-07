@@ -26,13 +26,26 @@ export default function Home(){
         <Metric label="Completed" value={dashboard?.completed_appointments} />
         <Metric label="All appointments" value={dashboard?.total_appointments} />
       </div>
+      <div className="grid grid-cols-2 gap-3">
+        <QuickLink to="/barber/appointments" label="My Appointments" />
+        <QuickLink to="/barber/schedule" label="My Schedule" />
+        <QuickLink to="/barber/settings" label="Settings" />
+      </div>
     </div>
+  )
+}
+
+function QuickLink({ to, label }) {
+  return (
+    <a href={to} className="rounded-xl border bg-white px-4 py-4 text-sm font-semibold text-gray-700 hover:bg-gray-50 text-center shadow-md hover:shadow-lg transition-shadow block">
+      {label}
+    </a>
   )
 }
 
 function Metric({ label, value }){
   return (
-    <div className="rounded-xl border bg-white p-4 shadow-sm">
+    <div className="rounded-xl border bg-white p-4 shadow-md">
       <div className="text-sm text-gray-600">{label}</div>
       <strong className="mt-1 block text-2xl">{value ?? '-'}</strong>
     </div>

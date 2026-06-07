@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import auth from '../../services/auth'
+import { Link, useNavigate } from 'react-router-dom'
 
 export default function Login() {
   const navigate = useNavigate()
@@ -29,6 +30,9 @@ export default function Login() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-stone-50 p-4">
       <form onSubmit={submit} className="w-full max-w-md rounded-2xl border bg-white p-8 shadow-sm">
+        <div className="mb-2 text-left">
+          <Link to="/" className="text-sm text-stone-500 hover:text-stone-800">← Back to Home</Link>
+        </div>
         <div className="mb-6 text-center">
           <h1 className="text-2xl font-black tracking-tight">TrimTime</h1>
           <p className="mt-1 text-sm text-stone-500">Staff sign in</p>

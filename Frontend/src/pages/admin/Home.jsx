@@ -29,7 +29,7 @@ export default function Home(){
 }
 
 function Metric({ label, value }){
-  return <div className="rounded-xl border bg-white p-4 shadow-sm"><div className="text-sm text-gray-600">{label}</div><strong className="mt-1 block text-2xl">{value ?? '-'}</strong></div>
+  return <div className="rounded-xl border bg-white p-4 shadow-md"><div className="text-sm text-gray-600">{label}</div><strong className="mt-1 block text-2xl">{value ?? '-'}</strong></div>
 }
 
 function ErrorMessage({ text }){

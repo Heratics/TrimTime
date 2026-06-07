@@ -28,7 +28,7 @@ export default function OwnerLayout() {
             </button>
           </div>
         </header>
-        <main className="p-4 max-w-6xl mx-auto">
+        <main className="p-4 pt-16 md:pt-4 max-w-6xl mx-auto">
           <Outlet />
         </main>
       </div>

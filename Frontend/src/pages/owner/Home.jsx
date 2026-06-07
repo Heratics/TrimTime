@@ -73,6 +73,7 @@ export default function Home() {
         <QuickLink to="/owner/barbers" label="Manage Barbers" />
         <QuickLink to="/owner/services" label="Manage Services" />
         <QuickLink to="/owner/scheduling" label="Scheduling" />
+        <QuickLink to="/owner/products" label="Products" />
         <QuickLink to="/owner/settings" label="Settings" />
       </div>
     </div>
@@ -92,7 +93,7 @@ function QuickLink({ to, label }) {
   return (
     <Link
       to={to}
-      className="rounded-xl border bg-white px-4 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-50 text-center"
+      className="rounded-xl border bg-white px-4 py-4 text-sm font-semibold text-gray-700 hover:bg-gray-50 text-center shadow-md hover:shadow-lg transition-shadow"
     >
       {label}
     </Link>
