@@ -292,7 +292,7 @@ export default function Scheduling(){
                       {schedules.map(schedule => (
                         <div key={schedule.id} className="flex flex-col gap-2 rounded-xl border bg-white p-3 sm:flex-row sm:items-center sm:justify-between">
                           <div className="text-sm font-medium">
-                            {DAYS[schedule.day_of_week]}: {schedule.start_time} - {schedule.end_time}
+                            {DAYS[schedule.day_of_week]}: {schedule.start_time?.slice(0,5)} - {schedule.end_time?.slice(0,5)}
                           </div>
                           <button className="self-start rounded-lg bg-red-500 px-3 py-2 text-sm text-white sm:self-auto" onClick={()=>removeSchedule(schedule.id)} type="button">
                             Delete

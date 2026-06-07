@@ -19,6 +19,11 @@ function timeWithinRange(testStart, testEnd, rangeStart, rangeEnd) {
   const e = normalizeTime(testEnd);
   const rs = normalizeTime(rangeStart);
   const re = normalizeTime(rangeEnd);
+  // Handle overnight ranges e.g. 20:00 - 04:00
+  if (re <= rs) {
+    // Overnight: valid if start is after open OR end is before close (next day)
+    return s >= rs || e <= re;
+  }
   return s >= rs && e <= re;
 }
 

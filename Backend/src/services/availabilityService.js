@@ -86,8 +86,18 @@ class AvailabilityService {
 
     // For each working schedule segment (allows split shifts)
     for (const sched of workingSchedules) {
-      let segmentStart = Math.max(timeToMinutes(sched.start_time), timeToMinutes(dayShopHours.open_time));
-      const segmentEnd = Math.min(timeToMinutes(sched.end_time), timeToMinutes(dayShopHours.close_time));
+      const shopOpen = timeToMinutes(dayShopHours.open_time);
+      const shopClose = timeToMinutes(dayShopHours.close_time);
+      const schedStart = timeToMinutes(sched.start_time);
+      const schedEnd = timeToMinutes(sched.end_time);
+
+      // Handle overnight shop hours (e.g. 11:00 - 00:30 means close is next day = 24*60+30)
+      const adjustedShopClose = shopClose <= shopOpen ? shopClose + 24 * 60 : shopClose;
+      // Handle overnight barber schedule
+      const adjustedSchedEnd = schedEnd <= schedStart ? schedEnd + 24 * 60 : schedEnd;
+
+      let segmentStart = Math.max(schedStart, shopOpen);
+      const segmentEnd = Math.min(adjustedSchedEnd, adjustedShopClose);
 
       // If schedule outside shop hours or no overlap
       if (segmentStart >= segmentEnd) continue;
@@ -95,8 +105,8 @@ class AvailabilityService {
       // Generate slots starting at segmentStart, step by service duration
       let cursor = segmentStart;
       while (cursor + duration <= segmentEnd) {
-        const slotStart = cursor;
-        const slotEnd = cursor + duration;
+        const slotStart = cursor % (24 * 60); // normalize back to 0-1439
+        const slotEnd = slotStart + duration;
 
         // 4) Slot cannot overlap breaks
         const overlapsBreak = breaks.some(br => rangesOverlap(slotStart, slotEnd, br.start, br.end));
