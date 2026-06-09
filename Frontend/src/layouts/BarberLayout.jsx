@@ -2,36 +2,48 @@ import React from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import Sidebar from '../components/Sidebar'
 import auth from '../services/auth'
-
-const items = [
-  { to: '/barber', label: 'Home' },
-  { to: '/barber/appointments', label: 'My Appointments' },
-  { to: '/barber/schedule', label: 'My Schedule' },
-  { to: '/barber/settings', label: 'Settings' },
-]
+import { useLanguage } from '../context/LanguageContext'
 
 export default function BarberLayout() {
   const navigate = useNavigate()
   const user = auth.getCurrentUser()
+  const { lang, setLang, t } = useLanguage()
 
   function logout() {
     auth.logout()
     navigate('/staff/login', { replace: true })
   }
 
+  function toggleLang() {
+    setLang(lang === 'en' ? 'ar' : 'en')
+  }
+
+  const items = [
+    { to: '/barber', label: t('nav_home') },
+    { to: '/barber/appointments', label: t('nav_my_appointments') },
+    { to: '/barber/schedule', label: t('nav_my_schedule') },
+    { to: '/barber/settings', label: t('nav_settings') },
+  ]
+
   return (
     <div className="min-h-screen flex bg-gray-50">
       <Sidebar items={items} />
       <div className="flex-1 min-w-0">
         <header className="border-b bg-white px-4 py-3 flex items-center justify-between">
-          <span className="font-semibold text-sm text-gray-700">Barber Dashboard</span>
+          <span className="font-semibold text-sm text-gray-700">{t('barber_dashboard')}</span>
           <div className="flex items-center gap-3">
+            <button
+              onClick={toggleLang}
+              className="rounded-lg border px-3 py-1.5 text-sm font-semibold hover:bg-gray-50 flex items-center gap-1.5"
+            >
+              {lang === 'en' ? '🇯🇴 AR' : '🇺🇸 EN'}
+            </button>
             {user && <span className="text-sm text-gray-500 hidden sm:block">{user.full_name}</span>}
             <button
               onClick={logout}
               className="rounded-lg border px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-50"
             >
-              Sign Out
+              {t('nav_sign_out')}
             </button>
           </div>
         </header>
