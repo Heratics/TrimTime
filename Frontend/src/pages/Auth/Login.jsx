@@ -1,9 +1,11 @@
 import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import auth from '../../services/auth'
+import { useLanguage } from '../../context/LanguageContext'
 
 export default function Login() {
   const navigate = useNavigate()
+  const { t } = useLanguage()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
@@ -20,7 +22,7 @@ export default function Login() {
       else if (user.role === 'admin') navigate('/admin', { replace: true })
       else navigate('/', { replace: true })
     } catch {
-      setError('Invalid email or password.')
+      setError(t('login_error'))
     } finally {
       setSubmitting(false)
     }
@@ -30,11 +32,11 @@ export default function Login() {
     <div className="flex min-h-screen items-center justify-center bg-stone-50 p-4">
       <form onSubmit={submit} className="w-full max-w-md rounded-2xl border bg-white p-8 shadow-sm">
         <div className="mb-2 text-left">
-          <Link to="/" className="text-sm text-stone-500 hover:text-stone-800">← Back to Home</Link>
+          <Link to="/" className="text-sm text-stone-500 hover:text-stone-800">{t('login_back_home')}</Link>
         </div>
         <div className="mb-6 text-center">
           <h1 className="text-2xl font-black tracking-tight">TrimTime</h1>
-          <p className="mt-1 text-sm text-stone-500">Staff sign in</p>
+          <p className="mt-1 text-sm text-stone-500">{t('login_staff_signin')}</p>
         </div>
 
         {error && (
@@ -44,7 +46,7 @@ export default function Login() {
         )}
 
         <label className="block text-sm font-medium text-stone-700">
-          Email
+          {t('login_email')}
           <input
             type="email"
             required
@@ -55,7 +57,7 @@ export default function Login() {
         </label>
 
         <label className="mt-4 block text-sm font-medium text-stone-700">
-          Password
+          {t('login_password')}
           <input
             type="password"
             required
@@ -70,7 +72,7 @@ export default function Login() {
           disabled={submitting}
           className="mt-6 w-full rounded-lg bg-stone-900 px-4 py-2.5 font-semibold text-white disabled:opacity-60"
         >
-          {submitting ? 'Signing in…' : 'Sign In'}
+          {submitting ? t('login_submitting') : t('login_submit')}
         </button>
       </form>
     </div>
