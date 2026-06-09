@@ -124,7 +124,10 @@ class AvailabilityService {
     }
 
     // Deduplicate sorted slots
-    const unique = Array.from(new Set(slots)).sort();
+    const unique = Array.from(new Set(slots)).sort((a, b) => {
+    const toSortMin = t => { const m = timeToMinutes(t); return m < 420 ? m + 1440 : m; };
+    return toSortMin(a) - toSortMin(b);
+    });
 
     // Filter out past slots if booking for today
     const todayStr = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Amman' });
