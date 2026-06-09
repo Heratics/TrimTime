@@ -1,20 +1,24 @@
 import React, { useState } from 'react'
 import { NavLink, Link } from 'react-router-dom'
-
-const ownerItems = [
-  { to: '/owner', label: 'Home' },
-  { to: '/owner/appointments', label: 'Appointments' },
-  { to: '/owner/barbers', label: 'Barbers' },
-  { to: '/owner/services', label: 'Services' },
-  { to: '/owner/scheduling', label: 'Scheduling' },
-  { to: '/owner/products', label: 'Products' },
-  { to: '/owner/settings', label: 'Settings' },
-]
+import { useLanguage } from '../context/LanguageContext'
 
 const ROOT_PATHS = ['/owner', '/barber', '/admin']
 
-export default function Sidebar({ items = ownerItems }) {
+export default function Sidebar({ items }) {
   const [open, setOpen] = useState(false)
+  const { t } = useLanguage()
+
+  const ownerItems = [
+    { to: '/owner', label: t('nav_home') },
+    { to: '/owner/appointments', label: t('nav_appointments') },
+    { to: '/owner/barbers', label: t('nav_barbers') },
+    { to: '/owner/services', label: t('nav_services') },
+    { to: '/owner/scheduling', label: t('nav_scheduling') },
+    { to: '/owner/products', label: t('nav_products') },
+    { to: '/owner/settings', label: t('nav_settings') },
+  ]
+
+  const navItems = items || ownerItems
 
   return (
     <>
@@ -22,7 +26,7 @@ export default function Sidebar({ items = ownerItems }) {
       <aside className="w-56 bg-white border-r hidden md:flex flex-col shrink-0">
         <Link to="/" className="p-4 font-black text-lg tracking-tight border-b hover:text-stone-600 transition-colors">TrimTime</Link>
         <nav className="p-3 space-y-0.5 flex-1">
-          {items.map(i => (
+          {navItems.map(i => (
             <NavLink
               key={i.to}
               to={i.to}
@@ -61,7 +65,7 @@ export default function Sidebar({ items = ownerItems }) {
           <div className="w-64 h-full bg-white shadow-xl" onClick={e => e.stopPropagation()}>
             <div className="p-4 font-black text-lg border-b">TrimTime</div>
             <nav className="p-3 space-y-0.5">
-              {items.map(i => (
+              {navItems.map(i => (
                 <NavLink
                   key={i.to}
                   to={i.to}
