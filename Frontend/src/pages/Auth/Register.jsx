@@ -1,10 +1,11 @@
 import React, { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import api from '../../services/api'
-import { Link } from 'react-router-dom'
+import { useLanguage } from '../../context/LanguageContext'
 
 export default function Register() {
   const navigate = useNavigate()
+  const { t } = useLanguage()
   const [form, setForm] = useState({
     full_name: '',
     email: '',
@@ -24,7 +25,7 @@ export default function Register() {
   async function submit(event) {
     event.preventDefault()
     if (form.role === 'barber') {
-      return setError('Barber accounts are created by shop owners. Please contact your shop owner.')
+      return setError(t('register_barber_warning'))
     }
     if (form.password !== form.confirmPassword) {
       return setError('Passwords do not match.')
@@ -32,7 +33,6 @@ export default function Register() {
     try {
       setSubmitting(true)
       setError('')
-      const { default: api } = await import('../../services/api')
       await api.post('/auth/register', {
         full_name: form.full_name,
         email: form.email,
@@ -42,7 +42,7 @@ export default function Register() {
       })
       setPending(true)
     } catch (err) {
-      setError(err?.response?.data?.error || 'Registration failed.')
+      setError(err?.response?.data?.error || t('register_failed'))
     } finally {
       setSubmitting(false)
     }
@@ -54,16 +54,10 @@ export default function Register() {
         <div className="w-full max-w-md rounded-2xl border bg-white p-8 shadow-sm text-center">
           <div className="text-4xl mb-4">⏳</div>
           <h1 className="text-2xl font-black tracking-tight mb-2">TrimTime</h1>
-          <h2 className="text-lg font-semibold mb-2">Account Pending Approval</h2>
-          <p className="text-sm text-stone-500 mb-6">
-            Your account has been created and is waiting for admin approval.
-            You will be able to log in once your account is approved.
-          </p>
-          <a
-            href="/staff/login"
-            className="text-sm font-medium text-stone-900 hover:underline"
-          >
-            Back to Sign In
+          <h2 className="text-lg font-semibold mb-2">{t('register_pending_title')}</h2>
+          <p className="text-sm text-stone-500 mb-6">{t('register_pending_body')}</p>
+          <a href="/staff/login" className="text-sm font-medium text-stone-900 hover:underline">
+            {t('register_back_signin')}
           </a>
         </div>
       </div>
@@ -74,11 +68,11 @@ export default function Register() {
     <div className="flex min-h-screen items-center justify-center bg-stone-50 p-4">
       <form onSubmit={submit} className="w-full max-w-md rounded-2xl border bg-white p-8 shadow-sm">
         <div className="mb-2 text-left">
-          <Link to="/" className="text-sm text-stone-500 hover:text-stone-800">← Back to Home</Link>
+          <Link to="/" className="text-sm text-stone-500 hover:text-stone-800">{t('register_back_home')}</Link>
         </div>
         <div className="mb-6 text-center">
           <h1 className="text-2xl font-black tracking-tight">TrimTime</h1>
-          <p className="mt-1 text-sm text-stone-500">Create your account</p>
+          <p className="mt-1 text-sm text-stone-500">{t('register_create_account')}</p>
         </div>
 
         {error && (
@@ -89,25 +83,25 @@ export default function Register() {
 
         <div className="space-y-4">
           <label className="block text-sm font-medium text-stone-700">
-            Account Type
+            {t('register_account_type')}
             <select
               className="mt-1 w-full rounded-lg border px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-stone-900 bg-white"
               value={form.role}
               onChange={e => update('role', e.target.value)}
             >
-              <option value="owner">Shop Owner</option>
-              <option value="barber">Barber</option>
+              <option value="owner">{t('register_shop_owner')}</option>
+              <option value="barber">{t('register_barber')}</option>
             </select>
           </label>
 
           {form.role === 'barber' && (
             <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
-              Barber accounts are created by shop owners. Please contact your shop owner to get access.
+              {t('register_barber_warning')}
             </div>
           )}
 
           <label className="block text-sm font-medium text-stone-700">
-            Full Name
+            {t('register_full_name')}
             <input
               className="mt-1 w-full rounded-lg border px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-stone-900"
               value={form.full_name}
@@ -116,7 +110,7 @@ export default function Register() {
             />
           </label>
           <label className="block text-sm font-medium text-stone-700">
-            Email
+            {t('register_email')}
             <input
               className="mt-1 w-full rounded-lg border px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-stone-900"
               type="email"
@@ -126,7 +120,7 @@ export default function Register() {
             />
           </label>
           <label className="block text-sm font-medium text-stone-700">
-            Phone
+            {t('register_phone')}
             <input
               className="mt-1 w-full rounded-lg border px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-stone-900"
               value={form.phone}
@@ -134,7 +128,7 @@ export default function Register() {
             />
           </label>
           <label className="block text-sm font-medium text-stone-700">
-            Password
+            {t('register_password')}
             <input
               className="mt-1 w-full rounded-lg border px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-stone-900"
               type="password"
@@ -144,7 +138,7 @@ export default function Register() {
             />
           </label>
           <label className="block text-sm font-medium text-stone-700">
-            Confirm Password
+            {t('register_confirm_password')}
             <input
               className="mt-1 w-full rounded-lg border px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-stone-900"
               type="password"
@@ -160,13 +154,13 @@ export default function Register() {
           disabled={submitting || form.role === 'barber'}
           className="mt-6 w-full rounded-lg bg-stone-900 px-4 py-2.5 font-semibold text-white disabled:opacity-60"
         >
-          {submitting ? 'Creating account…' : 'Create Account'}
+          {submitting ? t('register_submitting') : t('register_submit')}
         </button>
 
         <p className="mt-4 text-center text-sm text-stone-500">
-          Already have an account?{' '}
+          {t('register_have_account')}{' '}
           <a href="/staff/login" className="font-medium text-stone-900 hover:underline">
-            Sign in
+            {t('register_sign_in')}
           </a>
         </p>
       </form>
