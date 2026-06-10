@@ -44,7 +44,7 @@ export default function OwnerSettings() {
       Object.entries(form).forEach(([k, v]) => data.append(k, v))
       if (logoRef.current?.files[0]) data.append('logo', logoRef.current.files[0])
       if (coverRef.current?.files[0]) data.append('cover_image', coverRef.current.files[0])
-      await api.put('/shops/me', data, { headers: { 'Content-Type': 'multipart/form-data' } })
+      await api.put(`/shops/${shop.id}`, data, { headers: { 'Content-Type': 'multipart/form-data' } })
       setSavedMsg(t('owner_settings_saved'))
       loadShop()
     } catch {
@@ -60,7 +60,7 @@ export default function OwnerSettings() {
     if (pw.next.length < 8) return setPwErr(t('owner_pw_err_length'))
     setPwSaving(true)
     try {
-      await api.post('/auth/change-password', { current_password: pw.current, new_password: pw.next })
+      await api.post(`/auth/change-password`, { current_password: pw.current, new_password: pw.next })
       setPwMsg(t('owner_pw_success'))
       setPw({ current: '', next: '', confirm: '' })
     } catch {
