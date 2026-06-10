@@ -1,217 +1,188 @@
-import React, { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import React, { useEffect, useRef, useState } from 'react'
 import api from '../../services/api'
-import ImageUpload from '../../components/ImageUpload'
+import { useLanguage } from '../../context/LanguageContext'
 
-export default function Settings() {
+export default function OwnerSettings() {
+  const { t } = useLanguage()
   const [tab, setTab] = useState('shop')
-
-  return (
-    <div>
-      <h1 className="text-2xl font-black mb-1">Settings</h1>
-      <p className="text-sm text-gray-500 mb-2">Manage your shop and account.</p>
-
-      <div className="flex gap-2 border-b mb-6">
-        <button
-          onClick={() => setTab('shop')}
-          className={`px-4 py-2 text-sm font-semibold border-b-2 transition-colors ${
-            tab === 'shop' ? 'border-stone-900 text-stone-900' : 'border-transparent text-gray-500 hover:text-gray-700'
-          }`}
-        >
-          Shop Settings
-        </button>
-        <button
-          onClick={() => setTab('account')}
-          className={`px-4 py-2 text-sm font-semibold border-b-2 transition-colors ${
-            tab === 'account' ? 'border-stone-900 text-stone-900' : 'border-transparent text-gray-500 hover:text-gray-700'
-          }`}
-        >
-          Account
-        </button>
-      </div>
-
-      {tab === 'shop' ? <ShopSettings /> : <AccountSettings />}
-    </div>
-  )
-}
-
-function ShopSettings() {
-  const [form, setForm] = useState(null)
-  const [error, setError] = useState('')
+  const [shop, setShop] = useState(null)
+  const [form, setForm] = useState({})
   const [saving, setSaving] = useState(false)
-  const [saved, setSaved] = useState(false)
+  const [savedMsg, setSavedMsg] = useState('')
+  const [error, setError] = useState('')
+  const [pw, setPw] = useState({ current: '', next: '', confirm: '' })
+  const [pwMsg, setPwMsg] = useState('')
+  const [pwErr, setPwErr] = useState('')
+  const [pwSaving, setPwSaving] = useState(false)
+  const logoRef = useRef()
+  const coverRef = useRef()
 
-  useEffect(() => {
-    api.get('/shops/me')
-      .then(r => setForm(r.data.shop || {}))
-      .catch(err => {
-        if (err?.response?.status === 404) setForm(false)
-        else setError('Unable to load shop settings.')
-      })
-  }, [])
+  useEffect(() => { loadShop() }, [])
 
-  function updateField(k, v) { setForm(prev => ({ ...prev, [k]: v })) }
-
-  async function save(e) {
-    e.preventDefault()
-    if (!form?.id) return
-    setSaving(true)
-    setError('')
-    setSaved(false)
+  async function loadShop() {
     try {
-      const { id, owner_user_id, created_at, updated_at, is_featured, slug, city, country, latitude, longitude, ...shopPayload } = form
-      await api.put('/shops/' + id, shopPayload)
-      setSaved(true)
-      setTimeout(() => setSaved(false), 3000)
-    } catch (err) {
-      setError(err?.response?.data?.error || err?.response?.data?.errors?.[0]?.msg || 'Failed to save settings.')
+      const res = await api.get('/owner/shop')
+      setShop(res.data.shop)
+      setForm({
+        name: res.data.shop.name || '',
+        description: res.data.shop.description || '',
+        phone: res.data.shop.phone || '',
+        email: res.data.shop.email || '',
+        district: res.data.shop.district || '',
+        address: res.data.shop.address || '',
+        google_maps_url: res.data.shop.google_maps_url || '',
+      })
+    } catch {
+      setError(t('owner_settings_err_load'))
+    }
+  }
+
+  async function saveShop() {
+    setSaving(true); setSavedMsg(''); setError('')
+    try {
+      const data = new FormData()
+      Object.entries(form).forEach(([k, v]) => data.append(k, v))
+      if (logoRef.current?.files[0]) data.append('logo', logoRef.current.files[0])
+      if (coverRef.current?.files[0]) data.append('cover_image', coverRef.current.files[0])
+      await api.put('/owner/shop', data, { headers: { 'Content-Type': 'multipart/form-data' } })
+      setSavedMsg(t('owner_settings_saved'))
+      loadShop()
+    } catch {
+      setError(t('owner_settings_err_save'))
     } finally {
       setSaving(false)
     }
   }
 
-  if (form === null) return <div className="py-10 text-center text-sm text-gray-500">Loading…</div>
-
-  if (form === false) {
-    return (
-      <div className="mx-auto max-w-lg py-10 text-center">
-        <p className="text-gray-600 mb-4">You haven't set up a shop yet.</p>
-        <Link to="/owner/setup" className="rounded-xl bg-stone-900 px-5 py-2.5 font-semibold text-white">
-          Set Up My Shop
-        </Link>
-      </div>
-    )
-  }
-
-  return (
-    <div>
-      {error && (
-        <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">{error}</div>
-      )}
-      {saved && (
-        <div className="mb-4 rounded-lg border border-green-200 bg-green-50 p-3 text-sm text-green-700">
-          Settings saved successfully.
-        </div>
-      )}
-      <form onSubmit={save} className="space-y-4 max-w-xl rounded-2xl border bg-white p-6 shadow-sm">
-        <Field label="Shop Name">
-          <input value={form.name || ''} onChange={e => updateField('name', e.target.value)} className="w-full rounded-lg border px-3 py-2.5" required />
-        </Field>
-        <Field label="Description">
-          <textarea value={form.description || ''} onChange={e => updateField('description', e.target.value)} rows={3} className="w-full rounded-lg border px-3 py-2.5" />
-        </Field>
-        <div className="grid grid-cols-2 gap-4">
-          <Field label="Phone">
-            <input value={form.phone || ''} onChange={e => updateField('phone', e.target.value)} className="w-full rounded-lg border px-3 py-2.5" />
-          </Field>
-          <Field label="Email">
-            <input type="email" value={form.email || ''} onChange={e => updateField('email', e.target.value)} className="w-full rounded-lg border px-3 py-2.5" />
-          </Field>
-        </div>
-        <div className="grid grid-cols-2 gap-4">
-          <Field label="District">
-            <input value={form.district || ''} onChange={e => updateField('district', e.target.value)} className="w-full rounded-lg border px-3 py-2.5" />
-          </Field>
-          <Field label="Address">
-            <input value={form.address || ''} onChange={e => updateField('address', e.target.value)} className="w-full rounded-lg border px-3 py-2.5" />
-          </Field>
-        </div>
-        <Field label="Google Maps URL">
-          <input value={form.google_maps_url || ''} onChange={e => updateField('google_maps_url', e.target.value)} className="w-full rounded-lg border px-3 py-2.5" />
-        </Field>
-        <ImageUpload
-          label="Logo"
-          value={form.logo_url || ''}
-          onChange={v => updateField('logo_url', v)}
-        />
-        <ImageUpload
-          label="Cover Image"
-          value={form.cover_image_url || ''}
-          onChange={v => updateField('cover_image_url', v)}
-        />
-        <button
-          type="submit"
-          disabled={saving}
-          className="rounded-xl bg-stone-900 px-5 py-2.5 font-semibold text-white disabled:opacity-60"
-        >
-          {saving ? 'Saving…' : 'Save Settings'}
-        </button>
-      </form>
-    </div>
-  )
-}
-
-function AccountSettings() {
-  const [form, setForm] = useState({ current_password: '', new_password: '', confirm_password: '' })
-  const [error, setError] = useState('')
-  const [success, setSuccess] = useState(false)
-  const [saving, setSaving] = useState(false)
-
-  function update(k, v) { setForm(prev => ({ ...prev, [k]: v })) }
-
-  async function submit(e) {
-    e.preventDefault()
-    if (form.new_password !== form.confirm_password) return setError('New passwords do not match.')
-    if (form.new_password.length < 8) return setError('New password must be at least 8 characters.')
-    setSaving(true)
-    setError('')
-    setSuccess(false)
+  async function changePassword() {
+    setPwErr(''); setPwMsg('')
+    if (pw.next !== pw.confirm) return setPwErr(t('owner_pw_err_match'))
+    if (pw.next.length < 8) return setPwErr(t('owner_pw_err_length'))
+    setPwSaving(true)
     try {
-      await api.put('/auth/password', {
-        current_password: form.current_password,
-        new_password: form.new_password
-      })
-      setSuccess(true)
-      setForm({ current_password: '', new_password: '', confirm_password: '' })
-      setTimeout(() => setSuccess(false), 3000)
-    } catch (err) {
-      setError(err?.response?.data?.error || 'Failed to change password.')
+      await api.post('/auth/change-password', { current_password: pw.current, new_password: pw.next })
+      setPwMsg(t('owner_pw_success'))
+      setPw({ current: '', next: '', confirm: '' })
+    } catch {
+      setPwErr(t('owner_pw_err_save'))
     } finally {
-      setSaving(false)
+      setPwSaving(false)
     }
   }
 
   return (
-    <div className="max-w-xl rounded-2xl border bg-white p-6 shadow-sm">
-      <h2 className="text-lg font-bold mb-1">Change Password</h2>
-      <p className="text-sm text-gray-500 mb-4">Update your login password.</p>
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-black">{t('owner_settings_title')}</h1>
+        <p className="text-stone-500 text-sm">{t('owner_settings_sub')}</p>
+      </div>
 
-      {error && (
-        <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">{error}</div>
-      )}
-      {success && (
-        <div className="mb-4 rounded-lg border border-green-200 bg-green-50 p-3 text-sm text-green-700">
-          Password changed successfully.
+      <div className="flex gap-2 border-b">
+        {[
+          { key: 'shop', label: t('owner_settings_tab_shop') },
+          { key: 'account', label: t('owner_settings_tab_account') },
+        ].map(tb => (
+          <button
+            key={tb.key}
+            onClick={() => setTab(tb.key)}
+            className={`px-4 py-2 text-sm font-semibold border-b-2 -mb-px ${tab === tb.key ? 'border-stone-900 text-stone-900' : 'border-transparent text-stone-400 hover:text-stone-600'}`}
+          >
+            {tb.label}
+          </button>
+        ))}
+      </div>
+
+      {tab === 'shop' && (
+        <div className="space-y-5">
+          {error && <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">{error}</div>}
+          {savedMsg && <div className="rounded-xl border border-green-200 bg-green-50 p-3 text-sm text-green-700">{savedMsg}</div>}
+
+          {!shop
+            ? (
+              <div className="text-center py-10">
+                <p className="text-stone-500">{t('owner_settings_no_shop')}</p>
+                <a href="/owner/setup" className="mt-4 inline-block rounded-xl bg-amber-500 px-5 py-2.5 font-bold text-sm">
+                  {t('owner_settings_setup_btn')}
+                </a>
+              </div>
+            )
+            : (
+              <div className="rounded-2xl border bg-white p-5 shadow-sm space-y-4">
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <Field label={t('owner_settings_shop_name')}>
+                    <input value={form.name || ''} onChange={e => setForm({ ...form, name: e.target.value })} className="mt-1 w-full rounded-xl border px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-stone-900" />
+                  </Field>
+                  <Field label={t('owner_settings_phone')}>
+                    <input value={form.phone || ''} onChange={e => setForm({ ...form, phone: e.target.value })} className="mt-1 w-full rounded-xl border px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-stone-900" />
+                  </Field>
+                  <Field label={t('owner_settings_email')}>
+                    <input value={form.email || ''} onChange={e => setForm({ ...form, email: e.target.value })} className="mt-1 w-full rounded-xl border px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-stone-900" />
+                  </Field>
+                  <Field label={t('owner_settings_district')}>
+                    <input value={form.district || ''} onChange={e => setForm({ ...form, district: e.target.value })} className="mt-1 w-full rounded-xl border px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-stone-900" />
+                  </Field>
+                  <Field label={t('owner_settings_address')} className="sm:col-span-2">
+                    <input value={form.address || ''} onChange={e => setForm({ ...form, address: e.target.value })} className="mt-1 w-full rounded-xl border px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-stone-900" />
+                  </Field>
+                  <Field label={t('owner_settings_maps')} className="sm:col-span-2">
+                    <input value={form.google_maps_url || ''} onChange={e => setForm({ ...form, google_maps_url: e.target.value })} className="mt-1 w-full rounded-xl border px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-stone-900" />
+                  </Field>
+                  <Field label={t('owner_settings_desc')} className="sm:col-span-2">
+                    <textarea value={form.description || ''} onChange={e => setForm({ ...form, description: e.target.value })} rows={3} className="mt-1 w-full rounded-xl border px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-stone-900" />
+                  </Field>
+                </div>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div>
+                    <p className="text-sm font-medium text-stone-700">{t('owner_settings_logo')}</p>
+                    {shop.logo_url && <img src={shop.logo_url} alt="" className="mt-1 h-16 w-16 rounded-xl object-cover border" />}
+                    <input ref={logoRef} type="file" accept="image/*" className="mt-2 text-sm" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-stone-700">{t('owner_settings_cover')}</p>
+                    {shop.cover_image_url && <img src={shop.cover_image_url} alt="" className="mt-1 h-16 w-full rounded-xl object-cover border" />}
+                    <input ref={coverRef} type="file" accept="image/*" className="mt-2 text-sm" />
+                  </div>
+                </div>
+                <button onClick={saveShop} disabled={saving} className="rounded-xl bg-stone-900 px-5 py-2.5 text-sm font-bold text-white disabled:opacity-50">
+                  {saving ? t('owner_settings_saving') : t('owner_settings_save')}
+                </button>
+              </div>
+            )
+          }
         </div>
       )}
 
-      <form onSubmit={submit} className="space-y-4">
-        <Field label="Current Password">
-          <input type="password" value={form.current_password} onChange={e => update('current_password', e.target.value)} className="w-full rounded-lg border px-3 py-2.5" required />
-        </Field>
-        <Field label="New Password">
-          <input type="password" value={form.new_password} onChange={e => update('new_password', e.target.value)} className="w-full rounded-lg border px-3 py-2.5" required />
-        </Field>
-        <Field label="Confirm New Password">
-          <input type="password" value={form.confirm_password} onChange={e => update('confirm_password', e.target.value)} className="w-full rounded-lg border px-3 py-2.5" required />
-        </Field>
-        <button
-          type="submit"
-          disabled={saving}
-          className="rounded-xl bg-stone-900 px-5 py-2.5 font-semibold text-white disabled:opacity-60"
-        >
-          {saving ? 'Saving…' : 'Change Password'}
-        </button>
-      </form>
+      {tab === 'account' && (
+        <div className="rounded-2xl border bg-white p-5 shadow-sm space-y-4">
+          <div>
+            <h2 className="font-black text-lg">{t('owner_pw_title')}</h2>
+            <p className="text-sm text-stone-500">{t('owner_pw_sub')}</p>
+          </div>
+          {pwErr && <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">{pwErr}</div>}
+          {pwMsg && <div className="rounded-xl border border-green-200 bg-green-50 p-3 text-sm text-green-700">{pwMsg}</div>}
+          <Field label={t('owner_pw_current')}>
+            <input type="password" value={pw.current} onChange={e => setPw({ ...pw, current: e.target.value })} className="mt-1 w-full rounded-xl border px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-stone-900" />
+          </Field>
+          <Field label={t('owner_pw_new')}>
+            <input type="password" value={pw.next} onChange={e => setPw({ ...pw, next: e.target.value })} className="mt-1 w-full rounded-xl border px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-stone-900" />
+          </Field>
+          <Field label={t('owner_pw_confirm')}>
+            <input type="password" value={pw.confirm} onChange={e => setPw({ ...pw, confirm: e.target.value })} className="mt-1 w-full rounded-xl border px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-stone-900" />
+          </Field>
+          <button onClick={changePassword} disabled={pwSaving} className="rounded-xl bg-stone-900 px-5 py-2.5 text-sm font-bold text-white disabled:opacity-50">
+            {pwSaving ? t('owner_pw_saving') : t('owner_pw_save')}
+          </button>
+        </div>
+      )}
     </div>
   )
 }
 
-function Field({ label, children }) {
+function Field({ label, children, className = '' }) {
   return (
-    <label className="block text-sm font-medium text-stone-700">
+    <label className={`block text-sm font-medium text-stone-700 ${className}`}>
       {label}
-      <div className="mt-1">{children}</div>
+      {children}
     </label>
   )
 }
