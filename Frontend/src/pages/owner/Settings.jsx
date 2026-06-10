@@ -44,7 +44,9 @@ export default function OwnerSettings() {
       Object.entries(form).forEach(([k, v]) => data.append(k, v))
       if (logoRef.current?.files[0]) data.append('logo', logoRef.current.files[0])
       if (coverRef.current?.files[0]) data.append('cover_image', coverRef.current.files[0])
-      await api.put(`/shops/${shop.id}`, data, { headers: { 'Content-Type': 'multipart/form-data' } })
+      await api.put(`/shops/${shop.id}`, data, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      })
       setSavedMsg(t('owner_settings_saved'))
       loadShop()
     } catch {
