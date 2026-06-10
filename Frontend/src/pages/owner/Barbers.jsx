@@ -17,7 +17,7 @@ export default function OwnerBarbers() {
 
   async function load() {
     try {
-      const res = await api.get('/owner/barbers')
+      const res = await api.get('/barbers/shop')
       setBarbers(res.data.barbers || [])
     } catch {
       setError(t('barbers_err_load'))
@@ -54,11 +54,9 @@ export default function OwnerBarbers() {
       if (!editing) {
         if (form.login_email) data.append('login_email', form.login_email)
         if (form.login_password) data.append('login_password', form.login_password)
-      }
-      if (editing) {
-        await api.put(`/owner/barbers/${editing.id}`, data, { headers: { 'Content-Type': 'multipart/form-data' } })
+        await api.post('/barbers', data, { headers: { 'Content-Type': 'multipart/form-data' } })
       } else {
-        await api.post('/owner/barbers', data, { headers: { 'Content-Type': 'multipart/form-data' } })
+        await api.put(`/barbers/${editing.id}`, data, { headers: { 'Content-Type': 'multipart/form-data' } })
       }
       setShowForm(false)
       load()
@@ -71,7 +69,7 @@ export default function OwnerBarbers() {
 
   async function toggleStatus(barber) {
     try {
-      await api.patch(`/owner/barbers/${barber.id}/status`, { is_active: !barber.is_active })
+      await api.put(`/barbers/${barber.id}`, { is_active: !barber.is_active })
       load()
     } catch {
       setError(t('barbers_err_status'))
@@ -81,7 +79,7 @@ export default function OwnerBarbers() {
   async function remove(barber) {
     if (!window.confirm(`Delete ${barber.full_name}?`)) return
     try {
-      await api.delete(`/owner/barbers/${barber.id}`)
+      await api.delete(`/barbers/${barber.id}`)
       load()
     } catch {
       setError(t('barbers_err_delete'))
