@@ -6,20 +6,16 @@ import { useLanguage } from '../../context/LanguageContext'
 export default function OwnerHome() {
   const { t } = useLanguage()
   const [stats, setStats] = useState(null)
-  const [shop, setShop] = useState(undefined)
+  const [noShop, setNoShop] = useState(false)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     async function load() {
       try {
-        const [shopRes, statsRes] = await Promise.all([
-          api.get('/owner/shop'),
-          api.get('/owner/dashboard')
-        ])
-        setShop(shopRes.data.shop)
-        setStats(statsRes.data)
-      } catch {
-        setShop(null)
+        const res = await api.get('/owner/dashboard')
+        setStats(res.data)
+      } catch (err) {
+        if (err?.response?.status === 404) setNoShop(true)
       } finally {
         setLoading(false)
       }
@@ -29,7 +25,7 @@ export default function OwnerHome() {
 
   if (loading) return <p className="text-stone-500">{t('owner_home_loading')}</p>
 
-  if (!shop) return (
+  if (noShop) return (
     <div className="flex flex-col items-center justify-center py-20 text-center">
       <div className="text-5xl mb-4">✂️</div>
       <h2 className="text-2xl font-black">{t('owner_home_no_shop_title')}</h2>
@@ -41,10 +37,10 @@ export default function OwnerHome() {
   )
 
   const metrics = [
-    { label: t('owner_metric_total'), value: stats?.total ?? '-' },
-    { label: t('owner_metric_pending'), value: stats?.pending ?? '-' },
-    { label: t('owner_metric_confirmed'), value: stats?.confirmed ?? '-' },
-    { label: t('owner_metric_completed'), value: stats?.completed ?? '-' },
+    { label: t('owner_metric_total'), value: stats?.total_appointments ?? '-' },
+    { label: t('owner_metric_pending'), value: stats?.pending_appointments ?? '-' },
+    { label: t('owner_metric_confirmed'), value: stats?.confirmed_appointments ?? '-' },
+    { label: t('owner_metric_completed'), value: stats?.completed_appointments ?? '-' },
     { label: t('owner_metric_barbers'), value: stats?.active_barbers ?? '-' },
     { label: t('owner_metric_services'), value: stats?.active_services ?? '-' },
   ]
