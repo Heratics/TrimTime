@@ -12,7 +12,7 @@ export default function BarberAppointments() {
 
   async function load() {
     try {
-      const res = await api.get('/barber/appointments')
+      const res = await api.get('/appointments/barber')
       setAppointments(res.data.appointments || [])
     } catch {
       setError(t('barber_appt_err_load'))
@@ -21,7 +21,7 @@ export default function BarberAppointments() {
 
   async function updateStatus(id, status) {
     try {
-      await api.patch(`/barber/appointments/${id}/status`, { status })
+      await api.put(`/appointments/${id}/status`, { status })
       setAppointments(prev => prev.map(a => a.id === id ? { ...a, status } : a))
     } catch {
       alert(t('barber_appt_err_update'))
