@@ -50,7 +50,7 @@ export default function OwnerBarbers() {
       const payload = { full_name: form.full_name, bio: form.bio }
       if (form.login_email) payload.email = form.login_email
       if (form.login_password) payload.password = form.login_password
-      await api.post('/barbers', payload)
+      await api.post('/barbers', payload, { headers: { 'Content-Type': 'application/json' } })
     } else {
       const data = new FormData()
       data.append('full_name', form.full_name)
