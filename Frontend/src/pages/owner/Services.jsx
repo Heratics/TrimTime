@@ -51,9 +51,9 @@ export default function OwnerServices() {
     setSubmitting(true)
     try {
       if (editing) {
-        await api.put(`/owner/services/${editing.id}`, form)
+        await api.put(`/services/${editing.id}`, form)
       } else {
-        await api.post('/owner/services', form)
+        await api.post('/services', form)
       }
       setShowForm(false)
       load()
@@ -66,7 +66,7 @@ export default function OwnerServices() {
 
   async function toggleStatus(service) {
     try {
-      await api.patch(`/owner/services/${service.id}/status`, { is_active: !service.is_active })
+      await api.patch(`/services/${service.id}/status`, { is_active: !service.is_active })
       load()
     } catch {
       setError('Failed to update service.')
