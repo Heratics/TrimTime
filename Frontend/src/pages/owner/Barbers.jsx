@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import api from '../../services/api'
 import { useLanguage } from '../../context/LanguageContext'
 
@@ -11,7 +11,6 @@ export default function OwnerBarbers() {
   const [showPassword, setShowPassword] = useState(false)
   const [form, setForm] = useState(emptyForm())
   const [submitting, setSubmitting] = useState(false)
-  const fileRef = useRef()
 
   useEffect(() => { load() }, [])
 
@@ -25,7 +24,7 @@ export default function OwnerBarbers() {
   }
 
   function emptyForm() {
-    return { full_name: '', bio: '', is_active: true, imageFile: null, login_email: '', login_password: '' }
+    return { full_name: '', bio: '', is_active: true, profile_image_url: '', login_email: '', login_password: '' }
   }
 
   function openAdd() {
@@ -37,7 +36,7 @@ export default function OwnerBarbers() {
 
   function openEdit(barber) {
     setEditing(barber)
-    setForm({ full_name: barber.full_name, bio: barber.bio || '', is_active: barber.is_active, imageFile: null, login_email: '', login_password: '' })
+    setForm({ full_name: barber.full_name, bio: barber.bio || '', is_active: barber.is_active, profile_image_url: barber.profile_image_url || '', login_email: '', login_password: '' })
     setShowForm(true)
     setError('')
   }
@@ -57,7 +56,12 @@ export default function OwnerBarbers() {
       data.append('bio', form.bio)
       data.append('is_active', form.is_active)
       if (form.imageFile) data.append('profile_image', form.imageFile)
-      await api.put(`/barbers/${editing.id}`, data, { headers: { 'Content-Type': 'multipart/form-data' } })
+      await api.put(`/barbers/${editing.id}`, {
+        full_name: form.full_name,
+        bio: form.bio,
+        is_active: form.is_active,
+        profile_image_url: form.profile_image_url || undefined
+      })    
     }
     setShowForm(false)
     load()
@@ -124,10 +128,17 @@ export default function OwnerBarbers() {
               className="mt-1 w-full rounded-xl border px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-stone-900"
             />
           </label>
-          <div>
-            <p className="text-sm font-medium text-stone-700 mb-1">{t('barbers_profile_image')}</p>
-            <input ref={fileRef} type="file" accept="image/*" onChange={e => setForm({ ...form, imageFile: e.target.files[0] })} className="text-sm" />
-          </div>
+          {editing && (
+          <label className="block text-sm font-medium text-stone-700">
+            {t('barbers_profile_image')} (URL)
+            <input
+              value={form.profile_image_url || ''}
+              onChange={e => setForm({ ...form, profile_image_url: e.target.value })}
+              placeholder="https://..."
+              className="mt-1 w-full rounded-xl border px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-stone-900"
+            />
+            </label>
+            )}
           <label className="flex items-center gap-2 text-sm font-medium text-stone-700">
             <input type="checkbox" checked={form.is_active} onChange={e => setForm({ ...form, is_active: e.target.checked })} />
             {t('barbers_active_label')}
