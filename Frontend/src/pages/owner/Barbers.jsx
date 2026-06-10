@@ -52,8 +52,8 @@ export default function OwnerBarbers() {
       data.append('is_active', form.is_active)
       if (form.imageFile) data.append('profile_image', form.imageFile)
       if (!editing) {
-        if (form.login_email) data.append('login_email', form.login_email)
-        if (form.login_password) data.append('login_password', form.login_password)
+        if (form.login_email) data.append('email', form.login_email)
+        if (form.login_password) data.append('password', form.login_password)
         await api.post('/barbers', data, { headers: { 'Content-Type': 'multipart/form-data' } })
       } else {
         await api.put(`/barbers/${editing.id}`, data, { headers: { 'Content-Type': 'multipart/form-data' } })
