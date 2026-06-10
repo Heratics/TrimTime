@@ -43,29 +43,30 @@ export default function OwnerBarbers() {
   }
 
   async function save() {
-    if (!form.full_name.trim()) return setError(t('barbers_full_name') + ' required')
-    setSubmitting(true)
-    try {
+  if (!form.full_name.trim()) return setError(t('barbers_full_name') + ' required')
+  setSubmitting(true)
+  try {
+    if (!editing) {
+      const payload = { full_name: form.full_name, bio: form.bio }
+      if (form.login_email) payload.email = form.login_email
+      if (form.login_password) payload.password = form.login_password
+      await api.post('/barbers', payload)
+    } else {
       const data = new FormData()
       data.append('full_name', form.full_name)
       data.append('bio', form.bio)
-      if (editing) data.append('is_active', form.is_active)
+      data.append('is_active', form.is_active)
       if (form.imageFile) data.append('profile_image', form.imageFile)
-      if (!editing) {
-        if (form.login_email) data.append('email', form.login_email)
-        if (form.login_password) data.append('password', form.login_password)
-        await api.post('/barbers', data, { headers: { 'Content-Type': 'multipart/form-data' } })
-      } else {
-        await api.put(`/barbers/${editing.id}`, data, { headers: { 'Content-Type': 'multipart/form-data' } })
-      }
-      setShowForm(false)
-      load()
-    } catch {
-      setError(t('barbers_err_save'))
-    } finally {
-      setSubmitting(false)
+      await api.put(`/barbers/${editing.id}`, data, { headers: { 'Content-Type': 'multipart/form-data' } })
     }
+    setShowForm(false)
+    load()
+  } catch {
+    setError(t('barbers_err_save'))
+  } finally {
+    setSubmitting(false)
   }
+}
 
   async function toggleStatus(barber) {
     try {
