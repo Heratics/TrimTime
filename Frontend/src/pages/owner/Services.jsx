@@ -1,68 +1,163 @@
 import React, { useEffect, useState } from 'react'
-import { fetchServices, createService, updateService, deleteService } from '../../services/ownerService'
+import api from '../../services/api'
+import { useLanguage } from '../../context/LanguageContext'
 
-export default function Services(){
+export default function OwnerServices() {
+  const { t } = useLanguage()
   const [services, setServices] = useState([])
-  const [formOpen, setFormOpen] = useState(false)
+  const [showForm, setShowForm] = useState(false)
   const [editing, setEditing] = useState(null)
-  useEffect(()=>{ fetchServices().then(r=>setServices(r.services||[])).catch(()=>{}) },[])
+  const [form, setForm] = useState(emptyForm())
+  const [error, setError] = useState('')
+  const [submitting, setSubmitting] = useState(false)
 
-  function openNew(){ setEditing(null); setFormOpen(true) }
-  function openEdit(s){ setEditing(s); setFormOpen(true) }
+  useEffect(() => { load() }, [])
 
-  async function submit(payload){
-    if (editing) await updateService(editing.id, payload)
-    else await createService(payload)
-    const r = await fetchServices()
-    setServices(r.services||[])
-    setFormOpen(false)
+  async function load() {
+    try {
+      const res = await api.get('/owner/services')
+      setServices(res.data.services || [])
+    } catch {
+      setError('Unable to load services.')
+    }
   }
 
-  async function remove(id){ if(!confirm('Disable service?')) return; await deleteService(id); const r = await fetchServices(); setServices(r.services||[]) }
+  function emptyForm() {
+    return { name: '', category: '', description: '', duration_minutes: '', price: '', is_active: true }
+  }
+
+  function openAdd() {
+    setEditing(null)
+    setForm(emptyForm())
+    setShowForm(true)
+    setError('')
+  }
+
+  function openEdit(service) {
+    setEditing(service)
+    setForm({
+      name: service.name,
+      category: service.category || '',
+      description: service.description || '',
+      duration_minutes: service.duration_minutes,
+      price: service.price,
+      is_active: service.is_active
+    })
+    setShowForm(true)
+    setError('')
+  }
+
+  async function save() {
+    setSubmitting(true)
+    try {
+      if (editing) {
+        await api.put(`/owner/services/${editing.id}`, form)
+      } else {
+        await api.post('/owner/services', form)
+      }
+      setShowForm(false)
+      load()
+    } catch {
+      setError('Failed to save service.')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  async function toggleStatus(service) {
+    try {
+      await api.patch(`/owner/services/${service.id}/status`, { is_active: !service.is_active })
+      load()
+    } catch {
+      setError('Failed to update service.')
+    }
+  }
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold mb-4">Services</h1>
-      <div className="mb-4">
-        <button className="px-4 py-2 bg-green-600 text-white rounded" onClick={openNew}>Add Service</button>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-black">{t('services_title')}</h1>
+        {!showForm && (
+          <button onClick={openAdd} className="rounded-xl bg-stone-900 px-4 py-2 text-sm font-bold text-white">
+            {t('services_add')}
+          </button>
+        )}
       </div>
 
-      {formOpen && (
-        <ServiceForm initial={editing} onCancel={()=>setFormOpen(false)} onSave={submit} />
+      {error && <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">{error}</div>}
+
+      {showForm && (
+        <div className="rounded-2xl border bg-white p-5 shadow-sm space-y-4">
+          <div className="grid gap-3 sm:grid-cols-2">
+            <input
+              value={form.name}
+              onChange={e => setForm({ ...form, name: e.target.value })}
+              placeholder={t('services_name_placeholder')}
+              className="rounded-xl border px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-stone-900"
+            />
+            <input
+              value={form.category}
+              onChange={e => setForm({ ...form, category: e.target.value })}
+              placeholder={t('services_category_placeholder')}
+              className="rounded-xl border px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-stone-900"
+            />
+            <input
+              value={form.description}
+              onChange={e => setForm({ ...form, description: e.target.value })}
+              placeholder={t('services_desc_placeholder')}
+              className="rounded-xl border px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-stone-900 sm:col-span-2"
+            />
+            <input
+              type="number"
+              value={form.duration_minutes}
+              onChange={e => setForm({ ...form, duration_minutes: e.target.value })}
+              placeholder={t('services_duration_placeholder')}
+              className="rounded-xl border px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-stone-900"
+            />
+            <input
+              type="number"
+              step="0.01"
+              value={form.price}
+              onChange={e => setForm({ ...form, price: e.target.value })}
+              placeholder={t('services_price_placeholder')}
+              className="rounded-xl border px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-stone-900"
+            />
+          </div>
+          <label className="flex items-center gap-2 text-sm font-medium text-stone-700">
+            <input type="checkbox" checked={form.is_active} onChange={e => setForm({ ...form, is_active: e.target.checked })} />
+            Active
+          </label>
+          <div className="flex gap-2">
+            <button onClick={save} disabled={submitting} className="rounded-xl bg-stone-900 px-5 py-2.5 text-sm font-bold text-white disabled:opacity-50">
+              {t('services_save')}
+            </button>
+            <button onClick={() => setShowForm(false)} className="rounded-xl border px-5 py-2.5 text-sm font-bold">
+              {t('services_cancel')}
+            </button>
+          </div>
+        </div>
       )}
 
-      <div className="space-y-2">
-        {services.map(s=> (
-          <div key={s.id} className="p-3 bg-white rounded shadow flex justify-between">
+      <div className="space-y-3">
+        {services.map(service => (
+          <div key={service.id} className="rounded-2xl border bg-white p-4 shadow-sm flex flex-wrap items-center justify-between gap-3">
             <div>
-              <div className="font-semibold">{s.name} — {s.category}</div>
-              <div className="text-sm text-gray-600">{s.description}</div>
+              <p className="font-bold">{service.name}</p>
+              {service.category && <p className="text-xs text-stone-400">{service.category}</p>}
+              <p className="text-sm text-stone-500 mt-0.5">{service.duration_minutes} min · {service.price} JOD</p>
+              {service.description && <p className="text-sm text-stone-400 mt-0.5">{service.description}</p>}
             </div>
-            <div className="space-x-2">
-              <button className="px-3 py-1 bg-blue-500 text-white rounded" onClick={()=>openEdit(s)}>Edit</button>
-              <button className="px-3 py-1 bg-red-500 text-white rounded" onClick={()=>remove(s.id)}>{s.is_active ? 'Disable' : 'Delete'}</button>
+            <div className="flex gap-2">
+              <button onClick={() => openEdit(service)} className="rounded-lg border px-3 py-1.5 text-xs font-semibold hover:bg-stone-50">
+                {t('barbers_edit')}
+              </button>
+              <button onClick={() => toggleStatus(service)} className="rounded-lg border px-3 py-1.5 text-xs font-semibold hover:bg-stone-50">
+                {service.is_active ? t('services_disable') : 'Enable'}
+              </button>
             </div>
           </div>
         ))}
       </div>
     </div>
-  )
-}
-
-function ServiceForm({ initial, onSave, onCancel }){
-  const [name, setName] = useState(initial?.name||'')
-  const [category, setCategory] = useState(initial?.category||'')
-  const [description, setDescription] = useState(initial?.description||'')
-  const [duration, setDuration] = useState(initial?.duration_minutes||30)
-  const [price, setPrice] = useState(initial?.price||0)
-  async function submit(e){ e.preventDefault(); await onSave({ name, category, description, duration_minutes: Number(duration), price: Number(price) }); }
-  return (
-    <form onSubmit={submit} className="p-4 bg-white rounded shadow mb-4">
-      <div className="mb-2"><input value={name} onChange={e=>setName(e.target.value)} className="w-full p-2 border" placeholder="Service name" required /></div>
-      <div className="mb-2"><input value={category} onChange={e=>setCategory(e.target.value)} className="w-full p-2 border" placeholder="Category" /></div>
-      <div className="mb-2"><textarea value={description} onChange={e=>setDescription(e.target.value)} className="w-full p-2 border" placeholder="Description" /></div>
-      <div className="mb-2 flex gap-2"><input value={duration} onChange={e=>setDuration(e.target.value)} className="p-2 border w-1/2" placeholder="Duration minutes" type="number"/><input value={price} onChange={e=>setPrice(e.target.value)} className="p-2 border w-1/2" placeholder="Price" type="number" step="0.01"/></div>
-      <div className="space-x-2"><button className="px-4 py-2 bg-green-600 text-white rounded" type="submit">Save</button><button type="button" onClick={onCancel} className="px-4 py-2 border rounded">Cancel</button></div>
-    </form>
   )
 }
