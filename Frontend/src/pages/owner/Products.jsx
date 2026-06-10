@@ -16,7 +16,7 @@ export default function OwnerProducts() {
 
   async function load() {
     try {
-      const res = await api.get('/owner/products')
+      const res = await api.get('/products')
       setProducts(res.data.products || [])
     } catch {
       setError(t('products_err_load'))
@@ -52,9 +52,9 @@ export default function OwnerProducts() {
       data.append('stock_quantity', form.stock_quantity)
       if (form.imageFile) data.append('product_image', form.imageFile)
       if (editing) {
-        await api.put(`/owner/products/${editing.id}`, data, { headers: { 'Content-Type': 'multipart/form-data' } })
+        await api.put(`/products/${editing.id}`, data, { headers: { 'Content-Type': 'multipart/form-data' } })
       } else {
-        await api.post('/owner/products', data, { headers: { 'Content-Type': 'multipart/form-data' } })
+        await api.post('/products', data, { headers: { 'Content-Type': 'multipart/form-data' } })
       }
       setShowForm(false)
       load()
@@ -68,7 +68,7 @@ export default function OwnerProducts() {
   async function remove(product) {
     if (!window.confirm(`Delete ${product.name}?`)) return
     try {
-      await api.delete(`/owner/products/${product.id}`)
+      await api.delete(`/products/${product.id}`)
       load()
     } catch {
       setError(t('products_err_delete'))
