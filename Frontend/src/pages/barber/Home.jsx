@@ -11,7 +11,7 @@ export default function BarberHome() {
   useEffect(() => {
     async function load() {
       try {
-        const res = await api.get('/barber/dashboard/stats')
+        const res = await api.get('/barber/dashboard')
         setStats(res.data)
       } catch {
         setError(t('barber_err_dashboard'))

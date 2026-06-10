@@ -14,7 +14,7 @@ export default function OwnerHome() {
       try {
         const [shopRes, statsRes] = await Promise.all([
           api.get('/owner/shop'),
-          api.get('/owner/dashboard/stats')
+          api.get('/owner/dashboard')
         ])
         setShop(shopRes.data.shop)
         setStats(statsRes.data)
