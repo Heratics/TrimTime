@@ -85,13 +85,12 @@ export default function Register() {
           <label className="block text-sm font-medium text-stone-700">
             {t('register_account_type')}
             <select
-              className="mt-1 w-full rounded-lg border px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-stone-900 bg-white"
-              value={form.role}
-              onChange={e => update('role', e.target.value)}
+            className="mt-1 w-full rounded-lg border px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-stone-900 bg-white"
+            value={form.role}
+            onChange={e => update('role', e.target.value)}
             >
-              <option value="owner">{t('register_shop_owner')}</option>
-              <option value="barber">{t('register_barber')}</option>
-            </select>
+            <option value="owner">{t('register_shop_owner')}</option>
+          </select>
           </label>
 
           {form.role === 'barber' && (
