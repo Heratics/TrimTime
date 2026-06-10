@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from 'react'
+import React, { useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../../services/api'
-import ImageUpload from '../../components/ImageUpload'
+import { useLanguage } from '../../context/LanguageContext'
 
 export default function SetupShop() {
   const navigate = useNavigate()
+  const { t } = useLanguage()
   const [form, setForm] = useState({
     name: '',
     description: '',
@@ -13,145 +14,131 @@ export default function SetupShop() {
     district: '',
     address: '',
     google_maps_url: '',
-    logo_url: '',
-    cover_image_url: '',
   })
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const logoRef = useRef()
+  const coverRef = useRef()
 
-  useEffect(() => {
-    // If owner already has a shop, redirect to dashboard
-    api.get('/shops/me')
-      .then(() => navigate('/owner', { replace: true }))
-      .catch(() => {}) // 404 = no shop yet, stay on this page
-  }, [navigate])
-
-  function update(k, v) {
-    setForm(prev => ({ ...prev, [k]: v }))
-  }
-
-  async function submit(event) {
-    event.preventDefault()
+  async function submit(e) {
+    e.preventDefault()
+    if (!form.name.trim()) return setError(t('setup_name') + ' required')
     setSubmitting(true)
     setError('')
     try {
-      await api.post('/shops', {
-        ...form,
-        city: 'Aqaba',
-        country: 'Jordan',
-      })
+      const data = new FormData()
+      Object.entries(form).forEach(([k, v]) => data.append(k, v))
+      if (logoRef.current?.files[0]) data.append('logo', logoRef.current.files[0])
+      if (coverRef.current?.files[0]) data.append('cover_image', coverRef.current.files[0])
+      await api.post('/owner/shop', data, { headers: { 'Content-Type': 'multipart/form-data' } })
       navigate('/owner', { replace: true })
-    } catch (err) {
-      setError(err?.response?.data?.error || err?.response?.data?.errors?.[0]?.msg || 'Failed to create shop.')
+    } catch {
+      setError(t('setup_err'))
     } finally {
       setSubmitting(false)
     }
   }
 
+  function update(field, value) {
+    setForm(prev => ({ ...prev, [field]: value }))
+  }
+
   return (
-    <div className="mx-auto max-w-xl py-6">
-      <h1 className="text-2xl font-black mb-1">Set Up Your Shop</h1>
-      <p className="text-sm text-gray-500 mb-6">
-        This information will appear on your public shop page in Aqaba.
-      </p>
+    <div className="mx-auto max-w-2xl space-y-6">
+      <div>
+        <h1 className="text-2xl font-black">{t('setup_title')}</h1>
+        <p className="text-sm text-stone-500">{t('setup_sub')}</p>
+      </div>
 
       {error && (
-        <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">{error}</div>
+        <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">{error}</div>
       )}
 
-      <form onSubmit={submit} className="space-y-4 rounded-2xl border bg-white p-6 shadow-sm">
-        <Field label="Shop Name *">
-          <input
-            value={form.name}
-            onChange={e => update('name', e.target.value)}
-            className="w-full rounded-lg border px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-stone-900"
-            required
-          />
-        </Field>
-
-        <Field label="Description">
-          <textarea
-            value={form.description}
-            onChange={e => update('description', e.target.value)}
-            rows={3}
-            className="w-full rounded-lg border px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-stone-900"
-            placeholder="Tell customers about your shop…"
-          />
-        </Field>
-
-        <div className="grid grid-cols-2 gap-4">
-          <Field label="Phone">
+      <form onSubmit={submit} className="rounded-2xl border bg-white p-5 shadow-sm space-y-4">
+        <div className="grid gap-4 sm:grid-cols-2">
+          <label className="block text-sm font-medium text-stone-700 sm:col-span-2">
+            {t('setup_name')}
+            <input
+              value={form.name}
+              onChange={e => update('name', e.target.value)}
+              required
+              className="mt-1 w-full rounded-xl border px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-stone-900"
+            />
+          </label>
+          <label className="block text-sm font-medium text-stone-700 sm:col-span-2">
+            {t('setup_desc')}
+            <textarea
+              value={form.description}
+              onChange={e => update('description', e.target.value)}
+              placeholder={t('setup_desc_placeholder')}
+              rows={3}
+              className="mt-1 w-full rounded-xl border px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-stone-900"
+            />
+          </label>
+          <label className="block text-sm font-medium text-stone-700">
+            {t('setup_phone')}
             <input
               value={form.phone}
               onChange={e => update('phone', e.target.value)}
-              className="w-full rounded-lg border px-3 py-2.5"
+              className="mt-1 w-full rounded-xl border px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-stone-900"
             />
-          </Field>
-          <Field label="Email">
+          </label>
+          <label className="block text-sm font-medium text-stone-700">
+            {t('setup_email')}
             <input
               type="email"
               value={form.email}
               onChange={e => update('email', e.target.value)}
-              className="w-full rounded-lg border px-3 py-2.5"
+              className="mt-1 w-full rounded-xl border px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-stone-900"
             />
-          </Field>
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <Field label="District">
+          </label>
+          <label className="block text-sm font-medium text-stone-700">
+            {t('setup_district')}
             <input
               value={form.district}
               onChange={e => update('district', e.target.value)}
-              className="w-full rounded-lg border px-3 py-2.5"
-              placeholder="e.g. Al-Rawnaq"
+              placeholder={t('setup_district_placeholder')}
+              className="mt-1 w-full rounded-xl border px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-stone-900"
             />
-          </Field>
-          <Field label="Address">
+          </label>
+          <label className="block text-sm font-medium text-stone-700">
+            {t('setup_address')}
             <input
               value={form.address}
               onChange={e => update('address', e.target.value)}
-              className="w-full rounded-lg border px-3 py-2.5"
+              className="mt-1 w-full rounded-xl border px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-stone-900"
             />
-          </Field>
+          </label>
+          <label className="block text-sm font-medium text-stone-700 sm:col-span-2">
+            {t('setup_maps')}
+            <input
+              value={form.google_maps_url}
+              onChange={e => update('google_maps_url', e.target.value)}
+              placeholder={t('setup_maps_placeholder')}
+              className="mt-1 w-full rounded-xl border px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-stone-900"
+            />
+          </label>
         </div>
 
-        <Field label="Google Maps URL">
-          <input
-            value={form.google_maps_url}
-            onChange={e => update('google_maps_url', e.target.value)}
-            className="w-full rounded-lg border px-3 py-2.5"
-            placeholder="https://maps.google.com/…"
-          />
-        </Field>
-
-        <ImageUpload
-          label="Logo"
-          value={form.logo_url}
-          onChange={v => update('logo_url', v)}
-        />
-        <ImageUpload
-          label="Cover Image"
-          value={form.cover_image_url}
-          onChange={v => update('cover_image_url', v)}
-        />
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <p className="text-sm font-medium text-stone-700">{t('setup_logo')}</p>
+            <input ref={logoRef} type="file" accept="image/*" className="mt-2 text-sm" />
+          </div>
+          <div>
+            <p className="text-sm font-medium text-stone-700">{t('setup_cover')}</p>
+            <input ref={coverRef} type="file" accept="image/*" className="mt-2 text-sm" />
+          </div>
+        </div>
 
         <button
           type="submit"
           disabled={submitting}
-          className="w-full rounded-xl bg-stone-900 px-4 py-3 font-semibold text-white disabled:opacity-60"
+          className="w-full rounded-xl bg-stone-900 px-5 py-3 font-bold text-white disabled:opacity-50"
         >
-          {submitting ? 'Creating shop…' : 'Create My Shop'}
+          {submitting ? t('setup_submitting') : t('setup_submit')}
         </button>
       </form>
     </div>
-  )
-}
-
-function Field({ label, children }) {
-  return (
-    <label className="block text-sm font-medium text-stone-700">
-      {label}
-      <div className="mt-1">{children}</div>
-    </label>
   )
 }
