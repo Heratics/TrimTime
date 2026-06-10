@@ -12,7 +12,7 @@ export default function OwnerAppointments() {
 
   async function load() {
     try {
-      const res = await api.get('/owner/appointments')
+      const res = await api.get('/appointments/shop')
       setAppointments(res.data.appointments || [])
     } catch {
       setError('Unable to load appointments.')
@@ -21,7 +21,7 @@ export default function OwnerAppointments() {
 
   async function updateStatus(id, status) {
     try {
-      await api.patch(`/owner/appointments/${id}/status`, { status })
+      await api.put(`/appointments/${id}/status`, { status })
       setAppointments(prev => prev.map(a => a.id === id ? { ...a, status } : a))
     } catch {
       alert('Failed to update appointment.')
