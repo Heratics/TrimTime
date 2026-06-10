@@ -1,101 +1,84 @@
 import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { fetchDashboardMetrics } from '../../services/ownerService'
 import api from '../../services/api'
+import { useLanguage } from '../../context/LanguageContext'
 
-export default function Home() {
-  const [metrics, setMetrics] = useState(null)
-  const [hasShop, setHasShop] = useState(null) // null = loading, true/false = known
-  const [error, setError] = useState('')
+export default function OwnerHome() {
+  const { t } = useLanguage()
+  const [stats, setStats] = useState(null)
+  const [shop, setShop] = useState(undefined)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Check if owner has a shop first
-    api.get('/shops/me')
-      .then(() => {
-        setHasShop(true)
-        return fetchDashboardMetrics()
-      })
-      .then(d => setMetrics(d))
-      .catch(err => {
-        if (err?.response?.status === 404) {
-          setHasShop(false)
-        } else {
-          setHasShop(true)
-          setError('Unable to load dashboard metrics.')
-        }
-      })
+    async function load() {
+      try {
+        const [shopRes, statsRes] = await Promise.all([
+          api.get('/owner/shop'),
+          api.get('/owner/dashboard/stats')
+        ])
+        setShop(shopRes.data.shop)
+        setStats(statsRes.data)
+      } catch {
+        setShop(null)
+      } finally {
+        setLoading(false)
+      }
+    }
+    load()
   }, [])
 
-  if (hasShop === null) {
-    return <div className="py-10 text-center text-sm text-gray-500">Loading…</div>
-  }
+  if (loading) return <p className="text-stone-500">{t('owner_home_loading')}</p>
 
-  if (hasShop === false) {
-    return (
-      <div className="mx-auto max-w-lg py-16 text-center">
-        <div className="rounded-2xl border bg-white p-8 shadow-sm">
-          <div className="text-4xl mb-4">✂️</div>
-          <h1 className="text-2xl font-black">Welcome to TrimTime</h1>
-          <p className="mt-2 text-gray-600">
-            You don't have a shop yet. Set one up to start managing appointments and barbers.
-          </p>
-          <Link
-            to="/owner/setup"
-            className="mt-6 inline-block rounded-xl bg-stone-900 px-6 py-3 font-semibold text-white"
-          >
-            Set Up My Shop
+  if (!shop) return (
+    <div className="flex flex-col items-center justify-center py-20 text-center">
+      <div className="text-5xl mb-4">✂️</div>
+      <h2 className="text-2xl font-black">{t('owner_home_no_shop_title')}</h2>
+      <p className="mt-2 text-stone-500 max-w-sm">{t('owner_home_no_shop_sub')}</p>
+      <Link to="/owner/setup" className="mt-6 rounded-xl bg-amber-500 px-6 py-3 font-bold">
+        {t('owner_home_setup_btn')}
+      </Link>
+    </div>
+  )
+
+  const metrics = [
+    { label: t('owner_metric_total'), value: stats?.total ?? '-' },
+    { label: t('owner_metric_pending'), value: stats?.pending ?? '-' },
+    { label: t('owner_metric_confirmed'), value: stats?.confirmed ?? '-' },
+    { label: t('owner_metric_completed'), value: stats?.completed ?? '-' },
+    { label: t('owner_metric_barbers'), value: stats?.active_barbers ?? '-' },
+    { label: t('owner_metric_services'), value: stats?.active_services ?? '-' },
+  ]
+
+  const quickLinks = [
+    { to: '/owner/appointments', label: t('owner_quick_appointments') },
+    { to: '/owner/barbers', label: t('owner_quick_barbers') },
+    { to: '/owner/services', label: t('owner_quick_services') },
+    { to: '/owner/scheduling', label: t('owner_quick_scheduling') },
+    { to: '/owner/products', label: t('owner_quick_products') },
+    { to: '/owner/settings', label: t('owner_quick_settings') },
+  ]
+
+  return (
+    <div className="space-y-8">
+      <div>
+        <h1 className="text-2xl font-black">{t('owner_home_title')}</h1>
+        <p className="text-stone-500">{t('owner_home_sub')}</p>
+      </div>
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+        {metrics.map(metric => (
+          <div key={metric.label} className="rounded-2xl border bg-white p-4 shadow-sm">
+            <p className="text-sm text-stone-500">{metric.label}</p>
+            <p className="mt-1 text-3xl font-black">{metric.value}</p>
+          </div>
+        ))}
+      </div>
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+        {quickLinks.map(link => (
+          <Link key={link.to} to={link.to} className="rounded-2xl border bg-white p-4 text-sm font-semibold shadow-sm hover:bg-stone-50">
+            {link.label}
           </Link>
-        </div>
-      </div>
-    )
-  }
-
-  return (
-    <div>
-      <h1 className="text-2xl font-bold mb-1">Dashboard</h1>
-      <p className="text-sm text-gray-500 mb-6">Overview of your shop's activity.</p>
-
-      {error && (
-        <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">{error}</div>
-      )}
-
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-        <Metric label="Total appointments" value={metrics?.total_appointments} />
-        <Metric label="Pending" value={metrics?.pending_appointments} color="text-amber-600" />
-        <Metric label="Confirmed" value={metrics?.confirmed_appointments} color="text-blue-600" />
-        <Metric label="Completed" value={metrics?.completed_appointments} color="text-green-600" />
-        <Metric label="Active barbers" value={metrics?.active_barbers} />
-        <Metric label="Active services" value={metrics?.active_services} />
-      </div>
-
-      <div className="mt-6 grid grid-cols-2 sm:grid-cols-3 gap-3">
-        <QuickLink to="/owner/appointments" label="View Appointments" />
-        <QuickLink to="/owner/barbers" label="Manage Barbers" />
-        <QuickLink to="/owner/services" label="Manage Services" />
-        <QuickLink to="/owner/scheduling" label="Scheduling" />
-        <QuickLink to="/owner/products" label="Products" />
-        <QuickLink to="/owner/settings" label="Settings" />
+        ))}
       </div>
     </div>
-  )
-}
-
-function Metric({ label, value, color = 'text-stone-900' }) {
-  return (
-    <div className="p-4 bg-white rounded-xl border shadow-sm">
-      <div className="text-sm text-gray-500">{label}</div>
-      <strong className={`mt-1 block text-2xl font-black ${color}`}>{value ?? '-'}</strong>
-    </div>
-  )
-}
-
-function QuickLink({ to, label }) {
-  return (
-    <Link
-      to={to}
-      className="rounded-xl border bg-white px-4 py-4 text-sm font-semibold text-gray-700 hover:bg-gray-50 text-center shadow-md hover:shadow-lg transition-shadow"
-    >
-      {label}
-    </Link>
   )
 }
