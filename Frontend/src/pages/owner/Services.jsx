@@ -15,7 +15,7 @@ export default function OwnerServices() {
 
   async function load() {
     try {
-      const res = await api.get('/owner/services')
+      const res = await api.get('/services')
       setServices(res.data.services || [])
     } catch {
       setError('Unable to load services.')
