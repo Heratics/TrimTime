@@ -21,12 +21,12 @@ export default function BarberHome() {
   }, [])
 
   const metrics = [
-    { label: t('barber_metric_today'), value: stats?.today ?? '-' },
-    { label: t('barber_metric_upcoming'), value: stats?.upcoming ?? '-' },
-    { label: t('barber_metric_pending'), value: stats?.pending ?? '-' },
-    { label: t('barber_metric_confirmed'), value: stats?.confirmed ?? '-' },
-    { label: t('barber_metric_completed'), value: stats?.completed ?? '-' },
-    { label: t('barber_metric_total'), value: stats?.total ?? '-' },
+    { label: t('barber_metric_today'), value: stats?.today_appointments ?? '-' },
+    { label: t('barber_metric_upcoming'), value: stats?.upcoming_appointments ?? '-' },
+    { label: t('barber_metric_pending'), value: stats?.pending_appointments ?? '-' },
+    { label: t('barber_metric_confirmed'), value: stats?.confirmed_appointments ?? '-' },
+    { label: t('barber_metric_completed'), value: stats?.completed_appointments ?? '-' },
+    { label: t('barber_metric_total'), value: stats?.total_appointments ?? '-' },
   ]
 
   const quickLinks = [
@@ -40,11 +40,9 @@ export default function BarberHome() {
       <div>
         <h1 className="text-2xl font-black">{t('barber_home_title')}</h1>
       </div>
-
       {error && (
         <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">{error}</div>
       )}
-
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         {metrics.map(metric => (
           <div key={metric.label} className="rounded-2xl border bg-white p-4 shadow-sm">
@@ -53,14 +51,9 @@ export default function BarberHome() {
           </div>
         ))}
       </div>
-
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         {quickLinks.map(link => (
-          <Link
-            key={link.to}
-            to={link.to}
-            className="rounded-2xl border bg-white p-4 text-sm font-semibold shadow-sm hover:bg-stone-50"
-          >
+          <Link key={link.to} to={link.to} className="rounded-2xl border bg-white p-4 text-sm font-semibold shadow-sm hover:bg-stone-50">
             {link.label}
           </Link>
         ))}
