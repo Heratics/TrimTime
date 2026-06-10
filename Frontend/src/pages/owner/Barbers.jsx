@@ -49,7 +49,7 @@ export default function OwnerBarbers() {
       const data = new FormData()
       data.append('full_name', form.full_name)
       data.append('bio', form.bio)
-      data.append('is_active', form.is_active)
+      if (editing) data.append('is_active', form.is_active)
       if (form.imageFile) data.append('profile_image', form.imageFile)
       if (!editing) {
         if (form.login_email) data.append('email', form.login_email)
