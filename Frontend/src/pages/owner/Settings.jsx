@@ -21,7 +21,7 @@ export default function OwnerSettings() {
 
   async function loadShop() {
     try {
-      const res = await api.get('/owner/shop')
+      const res = await api.get('/shops/me')
       setShop(res.data.shop)
       setForm({
         name: res.data.shop.name || '',
@@ -44,7 +44,7 @@ export default function OwnerSettings() {
       Object.entries(form).forEach(([k, v]) => data.append(k, v))
       if (logoRef.current?.files[0]) data.append('logo', logoRef.current.files[0])
       if (coverRef.current?.files[0]) data.append('cover_image', coverRef.current.files[0])
-      await api.put('/owner/shop', data, { headers: { 'Content-Type': 'multipart/form-data' } })
+      await api.put('/shops/me', data, { headers: { 'Content-Type': 'multipart/form-data' } })
       setSavedMsg(t('owner_settings_saved'))
       loadShop()
     } catch {
