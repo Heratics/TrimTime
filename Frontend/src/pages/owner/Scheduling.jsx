@@ -1,535 +1,335 @@
 import React, { useEffect, useState } from 'react'
-import {
-  getShopHours,
-  createShopHours,
-  deleteShopHours,
-  fetchBarbers,
-  listBarberSchedule,
-  createBarberSchedule,
-  deleteBarberSchedule,
-  listBarberBreaks,
-  createBarberBreak,
-  updateBarberBreak,
-  deleteBarberBreak,
-  listBarberTimeOff,
-  createBarberTimeOff,
-  updateBarberTimeOff,
-  deleteBarberTimeOff,
-} from '../../services/ownerService'
+import api from '../../services/api'
+import { useLanguage } from '../../context/LanguageContext'
 
-const DAYS = [
-  'Sunday',
-  'Monday',
-  'Tuesday',
-  'Wednesday',
-  'Thursday',
-  'Friday',
-  'Saturday'
-]
-
-export default function Scheduling(){
-  const [shopHours, setShopHours] = useState([])
+export default function OwnerScheduling() {
+  const { t } = useLanguage()
   const [barbers, setBarbers] = useState([])
+  const [shopHours, setShopHours] = useState([])
   const [selectedBarber, setSelectedBarber] = useState(null)
+  const [tab, setTab] = useState('schedules')
   const [schedules, setSchedules] = useState([])
   const [breaks, setBreaks] = useState([])
-  const [timeOffs, setTimeOffs] = useState([])
-  const [activeTab, setActiveTab] = useState('schedules')
-  const [newHour, setNewHour] = useState({ day_of_week: 1, open_time: '09:00', close_time: '18:00', is_closed: false })
-  const [newSchedule, setNewSchedule] = useState({ day_of_week: 1, start_time: '09:00', end_time: '17:00', is_working: true })
-  const [breakForm, setBreakForm] = useState(emptyBreakForm())
-  const [timeOffForm, setTimeOffForm] = useState(emptyTimeOffForm())
-  const [editingBreakId, setEditingBreakId] = useState(null)
-  const [editingTimeOffId, setEditingTimeOffId] = useState(null)
+  const [timeoffs, setTimeoffs] = useState([])
+  const [newHour, setNewHour] = useState({ day_of_week: '0', open_time: '', close_time: '' })
+  const [newSchedule, setNewSchedule] = useState({ day_of_week: '0', start_time: '', end_time: '' })
+  const [breakForm, setBreakForm] = useState({ day_of_week: '0', start_time: '', end_time: '', reason: '' })
+  const [editingBreak, setEditingBreak] = useState(null)
+  const [timeoffForm, setTimeoffForm] = useState({ start_date: '', end_date: '', type: 'vacation', notes: '' })
+  const [editingTimeoff, setEditingTimeoff] = useState(null)
+  const [error, setError] = useState('')
 
-  useEffect(()=>{ loadInitial() },[])
+  const days = [t('days_0'), t('days_1'), t('days_2'), t('days_3'), t('days_4'), t('days_5'), t('days_6')]
 
-  async function loadInitial(){
-    const [shopHoursResponse, barbersResponse] = await Promise.all([
-      getShopHours(),
-      fetchBarbers(),
-    ])
+  const timeoffTypes = [
+    { value: 'vacation', label: t('sched_vacation') },
+    { value: 'sick_leave', label: t('sched_sick_leave') },
+    { value: 'personal_leave', label: t('sched_personal_leave') },
+  ]
 
-    console.log('SHOP HOURS API RESPONSE:', shopHoursResponse)
+  useEffect(() => {
+    loadBarbers()
+    loadShopHours()
+  }, [])
 
-    setShopHours(shopHoursResponse.hours || [])
-    setBarbers(barbersResponse.barbers || [])
-  }
-
-  async function refreshShopHours(){
-    const response = await getShopHours()
-    setShopHours(response.hours || [])
-  }
-
-  async function refreshBarberData(barberId){
-    const [scheduleResponse, breaksResponse, timeOffResponse] = await Promise.all([
-      listBarberSchedule(barberId),
-      listBarberBreaks(barberId),
-      listBarberTimeOff(barberId),
-    ])
-    setSchedules(scheduleResponse.schedules || [])
-    setBreaks(breaksResponse.breaks || [])
-    setTimeOffs(timeOffResponse.timeOffs || [])
-  }
-
-  async function addShopHour(){
-    await createShopHours({ ...newHour, day_of_week: Number(newHour.day_of_week) })
-    await refreshShopHours()
-  }
-
-  async function removeShopHour(id){
-    if (!window.confirm('Delete this shop hour?')) return
-    await deleteShopHours(id)
-    await refreshShopHours()
-  }
-
-  async function selectBarber(barber){
-    setSelectedBarber(barber)
-    setActiveTab('schedules')
-    setBreakForm(emptyBreakForm())
-    setTimeOffForm(emptyTimeOffForm())
-    setEditingBreakId(null)
-    setEditingTimeOffId(null)
-    await refreshBarberData(barber.id)
-  }
-
-  async function addSchedule(){
-      if (!selectedBarber) return
-      try {
-        await createBarberSchedule(selectedBarber.id, { ...newSchedule, day_of_week: Number(newSchedule.day_of_week) })
-        await refreshBarberData(selectedBarber.id)
-      } catch (err) {
-        alert(err?.response?.data?.error || err?.response?.data?.errors?.[0]?.msg || 'Failed to save schedule')
+  useEffect(() => {
+    if (selectedBarber) {
+      loadSchedules()
+      loadBreaks()
+      loadTimeoffs()
     }
+  }, [selectedBarber])
+
+  async function loadBarbers() {
+    try {
+      const res = await api.get('/owner/barbers')
+      setBarbers(res.data.barbers || [])
+    } catch {}
   }
 
-  async function removeSchedule(id){
-    if (!selectedBarber) return
-    if (!window.confirm('Delete this schedule?')) return
-    await deleteBarberSchedule(selectedBarber.id, id)
-    await refreshBarberData(selectedBarber.id)
+  async function loadShopHours() {
+    try {
+      const res = await api.get('/owner/shop-hours')
+      setShopHours(res.data.hours || [])
+    } catch {}
   }
 
-  async function submitBreak(e){
-    e.preventDefault()
-    if (!selectedBarber) return
-    const payload = { ...breakForm, day_of_week: Number(breakForm.day_of_week) }
-    if (editingBreakId) {
-      await updateBarberBreak(selectedBarber.id, editingBreakId, payload)
-    } else {
-      await createBarberBreak(selectedBarber.id, payload)
-    }
-    await refreshBarberData(selectedBarber.id)
-    setBreakForm(emptyBreakForm())
-    setEditingBreakId(null)
+  async function loadSchedules() {
+    try {
+      const res = await api.get(`/owner/barbers/${selectedBarber.id}/schedules`)
+      setSchedules(res.data.schedules || [])
+    } catch {}
   }
 
-  async function submitTimeOff(e){
-    e.preventDefault()
-    if (!selectedBarber) return
-    const payload = {
-      start_date: timeOffForm.start_date,
-      end_date: timeOffForm.end_date,
-      reason: buildTimeOffReason(timeOffForm.type, timeOffForm.notes),
-    }
-    if (editingTimeOffId) {
-      await updateBarberTimeOff(selectedBarber.id, editingTimeOffId, payload)
-    } else {
-      await createBarberTimeOff(selectedBarber.id, payload)
-    }
-    await refreshBarberData(selectedBarber.id)
-    setTimeOffForm(emptyTimeOffForm())
-    setEditingTimeOffId(null)
+  async function loadBreaks() {
+    try {
+      const res = await api.get(`/owner/barbers/${selectedBarber.id}/breaks`)
+      setBreaks(res.data.breaks || [])
+    } catch {}
   }
 
-  async function editBreak(item){
-    setActiveTab('breaks')
-    setEditingBreakId(item.id)
-    setBreakForm({
-      day_of_week: item.day_of_week,
-      break_start: item.break_start,
-      break_end: item.break_end,
-      reason: item.reason || '',
-    })
+  async function loadTimeoffs() {
+    try {
+      const res = await api.get(`/owner/barbers/${selectedBarber.id}/timeoff`)
+      setTimeoffs(res.data.timeoff || [])
+    } catch {}
   }
 
-  async function deleteBreak(itemId){
-    if (!selectedBarber) return
-    if (!window.confirm('Delete this break?')) return
-    await deleteBarberBreak(selectedBarber.id, itemId)
-    await refreshBarberData(selectedBarber.id)
+  async function addShopHour() {
+    try {
+      await api.post('/owner/shop-hours', newHour)
+      setNewHour({ day_of_week: '0', open_time: '', close_time: '' })
+      loadShopHours()
+    } catch { setError(t('sched_err_save')) }
   }
 
-  async function editTimeOff(item){
-    setActiveTab('timeoff')
-    setEditingTimeOffId(item.id)
-    const parsed = parseTimeOffReason(item.reason)
-    setTimeOffForm({
-      start_date: toDateValue(item.start_date),
-      end_date: toDateValue(item.end_date),
-      type: parsed.type,
-      notes: parsed.notes,
-    })
+  async function deleteShopHour(id) {
+    if (!window.confirm(t('sched_confirm_delete_hour'))) return
+    try { await api.delete(`/owner/shop-hours/${id}`); loadShopHours() } catch { setError(t('sched_err_save')) }
   }
 
-  async function deleteTimeOff(itemId){
-    if (!selectedBarber) return
-    if (!window.confirm('Delete this time off entry?')) return
-    await deleteBarberTimeOff(selectedBarber.id, itemId)
-    await refreshBarberData(selectedBarber.id)
+  async function addSchedule() {
+    try {
+      await api.post(`/owner/barbers/${selectedBarber.id}/schedules`, newSchedule)
+      setNewSchedule({ day_of_week: '0', start_time: '', end_time: '' })
+      loadSchedules()
+    } catch { setError(t('sched_err_save')) }
   }
 
-  console.log('CURRENT shopHours STATE:', shopHours)
+  async function deleteSchedule(id) {
+    if (!window.confirm(t('sched_confirm_delete_schedule'))) return
+    try { await api.delete(`/owner/barbers/${selectedBarber.id}/schedules/${id}`); loadSchedules() } catch { setError(t('sched_err_save')) }
+  }
+
+  async function saveBreak() {
+    try {
+      if (editingBreak) {
+        await api.put(`/owner/barbers/${selectedBarber.id}/breaks/${editingBreak.id}`, breakForm)
+        setEditingBreak(null)
+      } else {
+        await api.post(`/owner/barbers/${selectedBarber.id}/breaks`, breakForm)
+      }
+      setBreakForm({ day_of_week: '0', start_time: '', end_time: '', reason: '' })
+      loadBreaks()
+    } catch { setError(t('sched_err_save')) }
+  }
+
+  async function deleteBreak(id) {
+    if (!window.confirm(t('sched_confirm_delete_break'))) return
+    try { await api.delete(`/owner/barbers/${selectedBarber.id}/breaks/${id}`); loadBreaks() } catch { setError(t('sched_err_save')) }
+  }
+
+  async function saveTimeoff() {
+    try {
+      if (editingTimeoff) {
+        await api.put(`/owner/barbers/${selectedBarber.id}/timeoff/${editingTimeoff.id}`, timeoffForm)
+        setEditingTimeoff(null)
+      } else {
+        await api.post(`/owner/barbers/${selectedBarber.id}/timeoff`, timeoffForm)
+      }
+      setTimeoffForm({ start_date: '', end_date: '', type: 'vacation', notes: '' })
+      loadTimeoffs()
+    } catch { setError(t('sched_err_save')) }
+  }
+
+  async function deleteTimeoff(id) {
+    if (!window.confirm(t('sched_confirm_delete_timeoff'))) return
+    try { await api.delete(`/owner/barbers/${selectedBarber.id}/timeoff/${id}`); loadTimeoffs() } catch { setError(t('sched_err_save')) }
+  }
 
   return (
-    <div className="space-y-6">
-      <header className="space-y-2">
-        <h1 className="text-2xl font-bold">Scheduling</h1>
-        <p className="text-sm text-gray-600">Manage shop hours, barber schedules, breaks, and time off from a single responsive screen.</p>
-      </header>
+    <div className="space-y-8">
+      <div>
+        <h1 className="text-2xl font-black">{t('sched_title')}</h1>
+        <p className="text-stone-500 text-sm">{t('sched_sub')}</p>
+      </div>
 
-      <section className="rounded-2xl border bg-white p-4 shadow-sm md:p-6">
-        <div className="mb-4 flex items-center justify-between gap-3">
-          <div>
-            <h2 className="font-semibold">Shop Hours</h2>
-            <p className="text-sm text-gray-500">Weekly open and close times.</p>
-          </div>
+      {error && <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">{error}</div>}
+
+      {/* Shop Hours */}
+      <section className="rounded-2xl border bg-white p-5 shadow-sm space-y-4">
+        <div>
+          <h2 className="text-lg font-black">{t('sched_shop_hours_title')}</h2>
+          <p className="text-sm text-stone-500">{t('sched_shop_hours_sub')}</p>
         </div>
-
-        <div className="space-y-2">
-          {shopHours.map(hour => (
-            <div key={hour.id} className="flex flex-col gap-2 rounded-xl border p-3 sm:flex-row sm:items-center sm:justify-between">
-              <div className="text-sm font-medium">
-                <p>
-                  {DAYS[hour.day_of_week]}: {hour.open_time} - {hour.close_time}
-                </p>
-              </div>
-              <button className="self-start rounded-lg bg-red-500 px-3 py-2 text-sm text-white sm:self-auto" onClick={()=>removeShopHour(hour.id)}>
-                Delete
-              </button>
-            </div>
-          ))}
-          {shopHours.length === 0 && <EmptyState title="No shop hours yet" text="Add the weekly business hours for this shop." />}
-        </div>
-
-        <div className="mt-4 rounded-xl border bg-gray-50 p-4">
-          <div className="grid gap-3 md:grid-cols-4">
-            <Field label="Day of week">
-              <select
-                value={newHour.day_of_week}
-                onChange={e=>setNewHour({...newHour, day_of_week:e.target.value})}
-                className="w-full rounded-lg border px-3 py-2"
-              >
-                {DAYS.map((day, index) => (
-                  <option key={index} value={index}>
-                    {day}
-                  </option>
-                ))}
-              </select>
-            </Field>
-            <Field label="Open time">
-              <input value={newHour.open_time} onChange={e=>setNewHour({...newHour, open_time:e.target.value})} className="w-full rounded-lg border px-3 py-2" />
-            </Field>
-            <Field label="Close time">
-              <input value={newHour.close_time} onChange={e=>setNewHour({...newHour, close_time:e.target.value})} className="w-full rounded-lg border px-3 py-2" />
-            </Field>
-            <div className="flex items-end">
-              <button className="w-full rounded-lg bg-green-600 px-4 py-2.5 font-medium text-white" onClick={addShopHour} type="button">
-                Add Shop Hour
-              </button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="rounded-2xl border bg-white p-4 shadow-sm md:p-6">
-        <div className="mb-4 flex items-center justify-between gap-3">
-          <div>
-            <h2 className="font-semibold">Barber Scheduling</h2>
-            <p className="text-sm text-gray-500">Select a barber to manage working blocks, breaks, and leave.</p>
-          </div>
-        </div>
-
-        <div className="grid gap-4 lg:grid-cols-3">
-          <div className="space-y-2">
-            <h3 className="text-sm font-semibold uppercase tracking-wide text-gray-500">Barbers</h3>
-            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-1">
-              {barbers.map(barber => (
-                <button
-                  key={barber.id}
-                  onClick={()=>selectBarber(barber)}
-                  className={`flex items-center justify-between rounded-xl border px-4 py-3 text-left transition ${selectedBarber?.id === barber.id ? 'border-green-600 bg-green-50' : 'bg-white hover:bg-gray-50'}`}
-                  type="button"
-                >
-                  <div>
-                    <div className="font-medium">{barber.full_name}</div>
-                    <div className="text-xs text-gray-500">{barber.is_active ? 'Active' : 'Inactive'}</div>
-                  </div>
-                  <span className="text-sm text-gray-400">Manage</span>
-                </button>
+        {shopHours.length === 0
+          ? <Empty title={t('sched_no_shop_hours')} sub={t('sched_no_shop_hours_sub')} />
+          : (
+            <div className="space-y-2">
+              {shopHours.map(h => (
+                <div key={h.id} className="flex items-center justify-between rounded-xl border px-4 py-2 text-sm">
+                  <span className="font-semibold">{days[h.day_of_week]}</span>
+                  <span className="text-stone-500">{h.open_time?.slice(0, 5)} – {h.close_time?.slice(0, 5)}</span>
+                  <button onClick={() => deleteShopHour(h.id)} className="text-red-500 text-xs font-semibold hover:underline">{t('sched_delete')}</button>
+                </div>
               ))}
             </div>
-          </div>
+          )
+        }
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+          <select value={newHour.day_of_week} onChange={e => setNewHour({ ...newHour, day_of_week: e.target.value })} className="rounded-xl border px-3 py-2 text-sm bg-white">
+            {days.map((d, i) => <option key={i} value={i}>{d}</option>)}
+          </select>
+          <input type="time" value={newHour.open_time} onChange={e => setNewHour({ ...newHour, open_time: e.target.value })} className="rounded-xl border px-3 py-2 text-sm" placeholder={t('sched_open_time')} />
+          <input type="time" value={newHour.close_time} onChange={e => setNewHour({ ...newHour, close_time: e.target.value })} className="rounded-xl border px-3 py-2 text-sm" placeholder={t('sched_close_time')} />
+          <button onClick={addShopHour} className="rounded-xl bg-stone-900 px-3 py-2 text-sm font-bold text-white">{t('sched_add_shop_hour')}</button>
+        </div>
+      </section>
 
-          <div className="lg:col-span-2">
-            {selectedBarber ? (
-              <div className="rounded-2xl border bg-gray-50 p-3 sm:p-4">
-                <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                  <div>
-                    <h3 className="font-semibold">{selectedBarber.full_name}</h3>
-                    <p className="text-sm text-gray-600">Use the tabs below to manage schedules, breaks, and time off.</p>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    <TabButton active={activeTab === 'schedules'} onClick={()=>setActiveTab('schedules')}>Schedules</TabButton>
-                    <TabButton active={activeTab === 'breaks'} onClick={()=>setActiveTab('breaks')}>Breaks</TabButton>
-                    <TabButton active={activeTab === 'timeoff'} onClick={()=>setActiveTab('timeoff')}>Time Off</TabButton>
-                  </div>
-                </div>
-
-                {activeTab === 'schedules' && (
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      {schedules.map(schedule => (
-                        <div key={schedule.id} className="flex flex-col gap-2 rounded-xl border bg-white p-3 sm:flex-row sm:items-center sm:justify-between">
-                          <div className="text-sm font-medium">
-                            {DAYS[schedule.day_of_week]}: {schedule.start_time?.slice(0,5)} - {schedule.end_time?.slice(0,5)}
-                          </div>
-                          <button className="self-start rounded-lg bg-red-500 px-3 py-2 text-sm text-white sm:self-auto" onClick={()=>removeSchedule(schedule.id)} type="button">
-                            Delete
-                          </button>
-                        </div>
-                      ))}
-                      {schedules.length === 0 && <EmptyState title="No schedules yet" text="Add the barber's regular working hours." />}
-                    </div>
-
-                    <div className="rounded-xl border bg-white p-4">
-                      <div className="grid gap-3 md:grid-cols-4">
-                        <Field label="Day">
-                          <select
-                            value={newSchedule.day_of_week}
-                            onChange={e=>setNewSchedule({...newSchedule, day_of_week:e.target.value})}
-                            className="w-full rounded-lg border px-3 py-2"
-                          >
-                            {DAYS.map((day, index) => (
-                              <option key={index} value={index}>
-                                {day}
-                              </option>
-                            ))}
-                          </select>
-                        </Field>
-                        <Field label="Start">
-                          <input type="time" value={newSchedule.start_time} onChange={e=>setNewSchedule({...newSchedule, start_time:e.target.value})} className="w-full rounded-lg border px-3 py-2" />
-                        </Field>
-                        <Field label="End">
-                          <input type="time" value={newSchedule.end_time} onChange={e=>setNewSchedule({...newSchedule, end_time:e.target.value})} className="w-full rounded-lg border px-3 py-2" />
-                        </Field>
-                        <div className="flex items-end">
-                          <button className="w-full rounded-lg bg-green-600 px-4 py-2.5 font-medium text-white" onClick={addSchedule} type="button">
-                            Add Schedule
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {activeTab === 'breaks' && (
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      {breaks.map(item => (
-                        <div key={item.id} className="flex flex-col gap-3 rounded-xl border bg-white p-3 sm:flex-row sm:items-center sm:justify-between">
-                          <div>
-                            <div className="text-sm font-medium">
-                              {DAYS[item.day_of_week]}: {item.break_start} - {item.break_end}
-                            </div>
-                            <div className="text-xs text-gray-500">{item.reason || 'No reason provided'}</div>
-                          </div>
-                          <div className="flex gap-2 self-start sm:self-auto">
-                            <button className="rounded-lg border px-3 py-2 text-sm" onClick={()=>editBreak(item)} type="button">Edit</button>
-                            <button className="rounded-lg bg-red-500 px-3 py-2 text-sm text-white" onClick={()=>deleteBreak(item.id)} type="button">Delete</button>
-                          </div>
-                        </div>
-                      ))}
-                      {breaks.length === 0 && <EmptyState title="No breaks yet" text="Add recurring break windows for this barber." />}
-                    </div>
-
-                    <form onSubmit={submitBreak} className="rounded-xl border bg-white p-4">
-                      <div className="mb-3 flex items-center justify-between gap-2">
-                        <h4 className="font-semibold">{editingBreakId ? 'Edit Break' : 'Add Break'}</h4>
-                        {editingBreakId && (
-                          <button
-                            type="button"
-                            className="text-sm text-gray-500"
-                            onClick={()=>{ setEditingBreakId(null); setBreakForm(emptyBreakForm()) }}
-                          >
-                            Reset
-                          </button>
-                        )}
-                      </div>
-
-                      <div className="grid gap-3 md:grid-cols-4">
-                        <Field label="Day of week">
-                          <select
-                            value={breakForm.day_of_week}
-                            onChange={e=>setBreakForm({...breakForm, day_of_week:e.target.value})}
-                            className="w-full rounded-lg border px-3 py-2"
-                          >
-                            {DAYS.map((day, index) => (
-                              <option key={index} value={index}>
-                                {day}
-                              </option>
-                            ))}
-                          </select>
-                        </Field>
-                        <Field label="Start time">
-                          <input value={breakForm.break_start} onChange={e=>setBreakForm({...breakForm, break_start:e.target.value})} className="w-full rounded-lg border px-3 py-2" placeholder="12:00" />
-                        </Field>
-                        <Field label="End time">
-                          <input value={breakForm.break_end} onChange={e=>setBreakForm({...breakForm, break_end:e.target.value})} className="w-full rounded-lg border px-3 py-2" placeholder="12:30" />
-                        </Field>
-                        <Field label="Reason">
-                          <input value={breakForm.reason} onChange={e=>setBreakForm({...breakForm, reason:e.target.value})} className="w-full rounded-lg border px-3 py-2" placeholder="Lunch break" />
-                        </Field>
-                      </div>
-
-                      <div className="mt-4 flex gap-2">
-                        <button className="rounded-lg bg-green-600 px-4 py-2.5 font-medium text-white" type="submit">
-                          {editingBreakId ? 'Update Break' : 'Add Break'}
-                        </button>
-                        <button className="rounded-lg border px-4 py-2.5" type="button" onClick={()=>{ setEditingBreakId(null); setBreakForm(emptyBreakForm()) }}>
-                          Clear
-                        </button>
-                      </div>
-                    </form>
-                  </div>
-                )}
-
-                {activeTab === 'timeoff' && (
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      {timeOffs.map(item => {
-                        const parsed = parseTimeOffReason(item.reason)
-                        return (
-                          <div key={item.id} className="flex flex-col gap-3 rounded-xl border bg-white p-3 sm:flex-row sm:items-center sm:justify-between">
-                            <div>
-                              <div className="text-sm font-medium">{toDateValue(item.start_date)} to {toDateValue(item.end_date)}</div>
-                              <div className="text-xs text-gray-500">{parsed.type}{parsed.notes ? ` - ${parsed.notes}` : ''}</div>
-                            </div>
-                            <div className="flex gap-2 self-start sm:self-auto">
-                              <button className="rounded-lg border px-3 py-2 text-sm" onClick={()=>editTimeOff(item)} type="button">Edit</button>
-                              <button className="rounded-lg bg-red-500 px-3 py-2 text-sm text-white" onClick={()=>deleteTimeOff(item.id)} type="button">Delete</button>
-                            </div>
-                          </div>
-                        )
-                      })}
-                      {timeOffs.length === 0 && <EmptyState title="No time off yet" text="Add leave periods for this barber." />}
-                    </div>
-
-                    <form onSubmit={submitTimeOff} className="rounded-xl border bg-white p-4">
-                      <div className="mb-3 flex items-center justify-between gap-2">
-                        <h4 className="font-semibold">{editingTimeOffId ? 'Edit Time Off' : 'Add Time Off'}</h4>
-                        {editingTimeOffId && (
-                          <button
-                            type="button"
-                            className="text-sm text-gray-500"
-                            onClick={()=>{ setEditingTimeOffId(null); setTimeOffForm(emptyTimeOffForm()) }}
-                          >
-                            Reset
-                          </button>
-                        )}
-                      </div>
-
-                      <div className="grid gap-3 md:grid-cols-4">
-                        <Field label="Start date">
-                          <input type="date" value={timeOffForm.start_date} onChange={e=>setTimeOffForm({...timeOffForm, start_date:e.target.value})} className="w-full rounded-lg border px-3 py-2" />
-                        </Field>
-                        <Field label="End date">
-                          <input type="date" value={timeOffForm.end_date} onChange={e=>setTimeOffForm({...timeOffForm, end_date:e.target.value})} className="w-full rounded-lg border px-3 py-2" />
-                        </Field>
-                        <Field label="Type">
-                          <select value={timeOffForm.type} onChange={e=>setTimeOffForm({...timeOffForm, type:e.target.value})} className="w-full rounded-lg border px-3 py-2">
-                            <option>Vacation</option>
-                            <option>Sick Leave</option>
-                            <option>Personal Leave</option>
-                          </select>
-                        </Field>
-                        <Field label="Notes">
-                          <input value={timeOffForm.notes} onChange={e=>setTimeOffForm({...timeOffForm, notes:e.target.value})} className="w-full rounded-lg border px-3 py-2" placeholder="Optional details" />
-                        </Field>
-                      </div>
-
-                      <div className="mt-4 flex gap-2">
-                        <button className="rounded-lg bg-green-600 px-4 py-2.5 font-medium text-white" type="submit">
-                          {editingTimeOffId ? 'Update Time Off' : 'Add Time Off'}
-                        </button>
-                        <button className="rounded-lg border px-4 py-2.5" type="button" onClick={()=>{ setEditingTimeOffId(null); setTimeOffForm(emptyTimeOffForm()) }}>
-                          Clear
-                        </button>
-                      </div>
-                    </form>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="rounded-2xl border bg-white p-5 text-sm text-gray-600">Select a barber to manage schedules, breaks, and time off.</div>
-            )}
+      {/* Barber Scheduling */}
+      <section className="rounded-2xl border bg-white p-5 shadow-sm space-y-4">
+        <div>
+          <h2 className="text-lg font-black">{t('sched_barber_title')}</h2>
+          <p className="text-sm text-stone-500">{t('sched_barber_sub')}</p>
+        </div>
+        <div>
+          <p className="text-sm font-semibold text-stone-600 mb-2">{t('sched_barbers_label')}</p>
+          <div className="flex flex-wrap gap-2">
+            {barbers.map(b => (
+              <button
+                key={b.id}
+                onClick={() => { setSelectedBarber(b); setTab('schedules') }}
+                className={`rounded-full border px-4 py-1.5 text-sm font-semibold ${selectedBarber?.id === b.id ? 'bg-stone-900 text-white' : 'hover:bg-stone-50'}`}
+              >
+                {b.full_name}
+              </button>
+            ))}
           </div>
         </div>
+
+        {!selectedBarber
+          ? <p className="text-sm text-stone-400 italic">{t('sched_select_barber_prompt')}</p>
+          : (
+            <div className="space-y-4">
+              <p className="text-sm text-stone-500">{t('sched_use_tabs')}</p>
+              <div className="flex gap-2 border-b">
+                {[
+                  { key: 'schedules', label: t('sched_tab_schedules') },
+                  { key: 'breaks', label: t('sched_tab_breaks') },
+                  { key: 'timeoff', label: t('sched_tab_timeoff') },
+                ].map(tb => (
+                  <button
+                    key={tb.key}
+                    onClick={() => setTab(tb.key)}
+                    className={`px-4 py-2 text-sm font-semibold border-b-2 -mb-px ${tab === tb.key ? 'border-stone-900 text-stone-900' : 'border-transparent text-stone-400 hover:text-stone-600'}`}
+                  >
+                    {tb.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Schedules tab */}
+              {tab === 'schedules' && (
+                <div className="space-y-3">
+                  {schedules.length === 0
+                    ? <Empty title={t('sched_no_schedules')} sub={t('sched_no_schedules_sub')} />
+                    : schedules.map(s => (
+                      <div key={s.id} className="flex items-center justify-between rounded-xl border px-4 py-2 text-sm">
+                        <span className="font-semibold">{days[s.day_of_week]}</span>
+                        <span className="text-stone-500">{s.start_time?.slice(0, 5)} – {s.end_time?.slice(0, 5)}</span>
+                        <button onClick={() => deleteSchedule(s.id)} className="text-red-500 text-xs font-semibold hover:underline">{t('sched_delete')}</button>
+                      </div>
+                    ))
+                  }
+                  <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                    <select value={newSchedule.day_of_week} onChange={e => setNewSchedule({ ...newSchedule, day_of_week: e.target.value })} className="rounded-xl border px-3 py-2 text-sm bg-white">
+                      {days.map((d, i) => <option key={i} value={i}>{d}</option>)}
+                    </select>
+                    <input type="time" value={newSchedule.start_time} onChange={e => setNewSchedule({ ...newSchedule, start_time: e.target.value })} className="rounded-xl border px-3 py-2 text-sm" />
+                    <input type="time" value={newSchedule.end_time} onChange={e => setNewSchedule({ ...newSchedule, end_time: e.target.value })} className="rounded-xl border px-3 py-2 text-sm" />
+                    <button onClick={addSchedule} className="rounded-xl bg-stone-900 px-3 py-2 text-sm font-bold text-white">{t('sched_add_schedule')}</button>
+                  </div>
+                </div>
+              )}
+
+              {/* Breaks tab */}
+              {tab === 'breaks' && (
+                <div className="space-y-3">
+                  {breaks.length === 0
+                    ? <Empty title={t('sched_no_breaks')} sub={t('sched_no_breaks_sub')} />
+                    : breaks.map(b => (
+                      <div key={b.id} className="flex items-center justify-between rounded-xl border px-4 py-2 text-sm">
+                        <span className="font-semibold">{days[b.day_of_week]}</span>
+                        <span className="text-stone-500">{b.start_time?.slice(0, 5)} – {b.end_time?.slice(0, 5)}</span>
+                        <span className="text-stone-400">{b.reason || ''}</span>
+                        <div className="flex gap-2">
+                          <button onClick={() => { setEditingBreak(b); setBreakForm({ day_of_week: b.day_of_week, start_time: b.start_time?.slice(0, 5), end_time: b.end_time?.slice(0, 5), reason: b.reason || '' }) }} className="text-xs font-semibold text-stone-500 hover:underline">{t('sched_edit_break')}</button>
+                          <button onClick={() => deleteBreak(b.id)} className="text-red-500 text-xs font-semibold hover:underline">{t('sched_delete')}</button>
+                        </div>
+                      </div>
+                    ))
+                  }
+                  <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                    <select value={breakForm.day_of_week} onChange={e => setBreakForm({ ...breakForm, day_of_week: e.target.value })} className="rounded-xl border px-3 py-2 text-sm bg-white">
+                      {days.map((d, i) => <option key={i} value={i}>{d}</option>)}
+                    </select>
+                    <input type="time" value={breakForm.start_time} onChange={e => setBreakForm({ ...breakForm, start_time: e.target.value })} className="rounded-xl border px-3 py-2 text-sm" />
+                    <input type="time" value={breakForm.end_time} onChange={e => setBreakForm({ ...breakForm, end_time: e.target.value })} className="rounded-xl border px-3 py-2 text-sm" />
+                    <input value={breakForm.reason} onChange={e => setBreakForm({ ...breakForm, reason: e.target.value })} placeholder={t('sched_reason')} className="rounded-xl border px-3 py-2 text-sm" />
+                  </div>
+                  <div className="flex gap-2">
+                    <button onClick={saveBreak} className="rounded-xl bg-stone-900 px-4 py-2 text-sm font-bold text-white">
+                      {editingBreak ? t('sched_update_break') : t('sched_add_break')}
+                    </button>
+                    {editingBreak && (
+                      <button onClick={() => { setEditingBreak(null); setBreakForm({ day_of_week: '0', start_time: '', end_time: '', reason: '' }) }} className="rounded-xl border px-4 py-2 text-sm font-bold">
+                        {t('sched_clear')}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Time Off tab */}
+              {tab === 'timeoff' && (
+                <div className="space-y-3">
+                  {timeoffs.length === 0
+                    ? <Empty title={t('sched_no_timeoff')} sub={t('sched_no_timeoff_sub')} />
+                    : timeoffs.map(to => (
+                      <div key={to.id} className="flex items-center justify-between rounded-xl border px-4 py-2 text-sm">
+                        <span className="font-semibold">{to.start_date} – {to.end_date}</span>
+                        <span className="text-stone-500">{timeoffTypes.find(x => x.value === to.type)?.label || to.type}</span>
+                        <span className="text-stone-400">{to.notes || ''}</span>
+                        <div className="flex gap-2">
+                          <button onClick={() => { setEditingTimeoff(to); setTimeoffForm({ start_date: to.start_date, end_date: to.end_date, type: to.type, notes: to.notes || '' }) }} className="text-xs font-semibold text-stone-500 hover:underline">{t('sched_edit_timeoff')}</button>
+                          <button onClick={() => deleteTimeoff(to.id)} className="text-red-500 text-xs font-semibold hover:underline">{t('sched_delete')}</button>
+                        </div>
+                      </div>
+                    ))
+                  }
+                  <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                    <input type="date" value={timeoffForm.start_date} onChange={e => setTimeoffForm({ ...timeoffForm, start_date: e.target.value })} className="rounded-xl border px-3 py-2 text-sm" />
+                    <input type="date" value={timeoffForm.end_date} onChange={e => setTimeoffForm({ ...timeoffForm, end_date: e.target.value })} className="rounded-xl border px-3 py-2 text-sm" />
+                    <select value={timeoffForm.type} onChange={e => setTimeoffForm({ ...timeoffForm, type: e.target.value })} className="rounded-xl border px-3 py-2 text-sm bg-white">
+                      {timeoffTypes.map(ty => <option key={ty.value} value={ty.value}>{ty.label}</option>)}
+                    </select>
+                    <input value={timeoffForm.notes} onChange={e => setTimeoffForm({ ...timeoffForm, notes: e.target.value })} placeholder={t('sched_notes_placeholder')} className="rounded-xl border px-3 py-2 text-sm" />
+                  </div>
+                  <div className="flex gap-2">
+                    <button onClick={saveTimeoff} className="rounded-xl bg-stone-900 px-4 py-2 text-sm font-bold text-white">
+                      {editingTimeoff ? t('sched_update_timeoff') : t('sched_add_timeoff')}
+                    </button>
+                    {editingTimeoff && (
+                      <button onClick={() => { setEditingTimeoff(null); setTimeoffForm({ start_date: '', end_date: '', type: 'vacation', notes: '' }) }} className="rounded-xl border px-4 py-2 text-sm font-bold">
+                        {t('sched_clear')}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          )
+        }
       </section>
     </div>
   )
 }
 
-function Field({ label, children }){
+function Empty({ title, sub }) {
   return (
-    <label className="block text-sm">
-      <span className="mb-1 block font-medium text-gray-700">{label}</span>
-      {children}
-    </label>
-  )
-}
-
-function TabButton({ active, onClick, children }){
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`rounded-full px-4 py-2 text-sm font-medium transition ${active ? 'bg-gray-900 text-white' : 'border bg-white text-gray-700 hover:bg-gray-100'}`}
-    >
-      {children}
-    </button>
-  )
-}
-
-function EmptyState({ title, text }){
-  return (
-    <div className="rounded-xl border border-dashed bg-gray-50 p-4 text-sm text-gray-600">
-      <div className="font-medium text-gray-800">{title}</div>
-      <div className="mt-1">{text}</div>
+    <div className="rounded-xl border border-dashed p-4 text-center">
+      <p className="font-semibold text-stone-600">{title}</p>
+      {sub && <p className="text-sm text-stone-400 mt-1">{sub}</p>}
     </div>
   )
-}
-
-function emptyBreakForm(){
-  return { day_of_week: 1, break_start: '12:00', break_end: '12:30', reason: '' }
-}
-
-function emptyTimeOffForm(){
-  return { start_date: '', end_date: '', type: 'Vacation', notes: '' }
-}
-
-function buildTimeOffReason(type, notes){
-  const safeNotes = (notes || '').trim()
-  return safeNotes ? `${type}: ${safeNotes}` : type
-}
-
-function parseTimeOffReason(reason){
-  if (!reason) return { type: 'Vacation', notes: '' }
-  const [type, ...rest] = String(reason).split(':')
-  return { type: (type || 'Vacation').trim(), notes: rest.join(':').trim() }
-}
-
-function toDateValue(value){
-  if (!value) return ''
-  return String(value).slice(0, 10)
 }
