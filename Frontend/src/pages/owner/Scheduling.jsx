@@ -42,42 +42,42 @@ export default function OwnerScheduling() {
 
   async function loadBarbers() {
     try {
-      const res = await api.get('/owner/barbers')
+      const res = await api.get('/barbers/shop')
       setBarbers(res.data.barbers || [])
     } catch {}
   }
 
   async function loadShopHours() {
     try {
-      const res = await api.get('/owner/shop-hours')
+      const res = await api.get('/shop-hours')
       setShopHours(res.data.hours || [])
     } catch {}
   }
 
   async function loadSchedules() {
     try {
-      const res = await api.get(`/owner/barbers/${selectedBarber.id}/schedules`)
+      const res = await api.get(`/barbers/${selectedBarber.id}/schedule`)
       setSchedules(res.data.schedules || [])
     } catch {}
   }
 
   async function loadBreaks() {
     try {
-      const res = await api.get(`/owner/barbers/${selectedBarber.id}/breaks`)
+      const res = await api.get(`/barbers/${selectedBarber.id}/breaks`)
       setBreaks(res.data.breaks || [])
     } catch {}
   }
 
   async function loadTimeoffs() {
     try {
-      const res = await api.get(`/owner/barbers/${selectedBarber.id}/timeoff`)
+      const res = await api.get(`/barbers/${selectedBarber.id}/time-off`)
       setTimeoffs(res.data.timeoff || [])
     } catch {}
   }
 
   async function addShopHour() {
     try {
-      await api.post('/owner/shop-hours', newHour)
+      await api.post('/shop-hours', newHour)
       setNewHour({ day_of_week: '0', open_time: '', close_time: '' })
       loadShopHours()
     } catch { setError(t('sched_err_save')) }
@@ -85,12 +85,12 @@ export default function OwnerScheduling() {
 
   async function deleteShopHour(id) {
     if (!window.confirm(t('sched_confirm_delete_hour'))) return
-    try { await api.delete(`/owner/shop-hours/${id}`); loadShopHours() } catch { setError(t('sched_err_save')) }
+    try { await api.delete(`/shop-hours/${id}`); loadShopHours() } catch { setError(t('sched_err_save')) }
   }
 
   async function addSchedule() {
     try {
-      await api.post(`/owner/barbers/${selectedBarber.id}/schedules`, newSchedule)
+      await api.post(`/barbers/${selectedBarber.id}/schedule`, newSchedule)
       setNewSchedule({ day_of_week: '0', start_time: '', end_time: '' })
       loadSchedules()
     } catch { setError(t('sched_err_save')) }
@@ -98,16 +98,16 @@ export default function OwnerScheduling() {
 
   async function deleteSchedule(id) {
     if (!window.confirm(t('sched_confirm_delete_schedule'))) return
-    try { await api.delete(`/owner/barbers/${selectedBarber.id}/schedules/${id}`); loadSchedules() } catch { setError(t('sched_err_save')) }
+    try { await api.delete(`/barbers/${selectedBarber.id}/schedule/${id}`); loadSchedules() } catch { setError(t('sched_err_save')) }
   }
 
   async function saveBreak() {
     try {
       if (editingBreak) {
-        await api.put(`/owner/barbers/${selectedBarber.id}/breaks/${editingBreak.id}`, breakForm)
+        await api.put(`/barbers/${selectedBarber.id}/breaks/${editingBreak.id}`, breakForm)
         setEditingBreak(null)
       } else {
-        await api.post(`/owner/barbers/${selectedBarber.id}/breaks`, breakForm)
+        await api.post(`/barbers/${selectedBarber.id}/breaks`, breakForm)
       }
       setBreakForm({ day_of_week: '0', start_time: '', end_time: '', reason: '' })
       loadBreaks()
@@ -116,16 +116,16 @@ export default function OwnerScheduling() {
 
   async function deleteBreak(id) {
     if (!window.confirm(t('sched_confirm_delete_break'))) return
-    try { await api.delete(`/owner/barbers/${selectedBarber.id}/breaks/${id}`); loadBreaks() } catch { setError(t('sched_err_save')) }
+    try { await api.delete(`/barbers/${selectedBarber.id}/breaks/${id}`); loadBreaks() } catch { setError(t('sched_err_save')) }
   }
 
   async function saveTimeoff() {
     try {
       if (editingTimeoff) {
-        await api.put(`/owner/barbers/${selectedBarber.id}/timeoff/${editingTimeoff.id}`, timeoffForm)
+        await api.put(`/barbers/${selectedBarber.id}/time-off/${editingTimeoff.id}`, timeoffForm)
         setEditingTimeoff(null)
       } else {
-        await api.post(`/owner/barbers/${selectedBarber.id}/timeoff`, timeoffForm)
+        await api.post(`/barbers/${selectedBarber.id}/time-off`, timeoffForm)
       }
       setTimeoffForm({ start_date: '', end_date: '', type: 'vacation', notes: '' })
       loadTimeoffs()
@@ -134,7 +134,7 @@ export default function OwnerScheduling() {
 
   async function deleteTimeoff(id) {
     if (!window.confirm(t('sched_confirm_delete_timeoff'))) return
-    try { await api.delete(`/owner/barbers/${selectedBarber.id}/timeoff/${id}`); loadTimeoffs() } catch { setError(t('sched_err_save')) }
+    try { await api.delete(`/barbers/${selectedBarber.id}/time-off/${id}`); loadTimeoffs() } catch { setError(t('sched_err_save')) }
   }
 
   return (
