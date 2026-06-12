@@ -37,13 +37,13 @@ export default function OwnerSettings() {
   }
 
   async function saveShop() {
-    setSaving(true); setSavedMsg(''); setError('')
+    setSaving(true)
+    setSavedMsg('')
+    setError('')
+
     try {
-      const data = new FormData()
-      Object.entries(form).forEach(([k, v]) => data.append(k, v))
-      await api.put(`/shops/${shop.id}`, data, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      })
+      await api.put(`/shops/${shop.id}`, form)
+
       setSavedMsg(t('owner_settings_saved'))
       loadShop()
     } catch {
