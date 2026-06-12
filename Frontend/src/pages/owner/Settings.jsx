@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react'
 import api from '../../services/api'
 import { useLanguage } from '../../context/LanguageContext'
+import ImageUpload from '../../components/ImageUpload'
 
 export default function OwnerSettings() {
   const { t } = useLanguage()
@@ -14,8 +15,6 @@ export default function OwnerSettings() {
   const [pwMsg, setPwMsg] = useState('')
   const [pwErr, setPwErr] = useState('')
   const [pwSaving, setPwSaving] = useState(false)
-  const logoRef = useRef()
-  const coverRef = useRef()
 
   useEffect(() => { loadShop() }, [])
 
@@ -42,8 +41,6 @@ export default function OwnerSettings() {
     try {
       const data = new FormData()
       Object.entries(form).forEach(([k, v]) => data.append(k, v))
-      if (logoRef.current?.files[0]) data.append('logo', logoRef.current.files[0])
-      if (coverRef.current?.files[0]) data.append('cover_image', coverRef.current.files[0])
       await api.put(`/shops/${shop.id}`, data, {
         headers: { 'Content-Type': 'multipart/form-data' }
       })
@@ -137,12 +134,20 @@ export default function OwnerSettings() {
                   <div>
                     <p className="text-sm font-medium text-stone-700">{t('owner_settings_logo')}</p>
                     {shop.logo_url && <img src={shop.logo_url} alt="" className="mt-1 h-16 w-16 rounded-xl object-cover border" />}
-                    <input ref={logoRef} type="file" accept="image/*" className="mt-2 text-sm" />
+                    <ImageUpload
+                      label="Shop Logo"
+                      value={form.logo_url || ''}
+                      onChange={v => setForm({ ...form, logo_url: v })}
+                    />
                   </div>
                   <div>
                     <p className="text-sm font-medium text-stone-700">{t('owner_settings_cover')}</p>
                     {shop.cover_image_url && <img src={shop.cover_image_url} alt="" className="mt-1 h-16 w-full rounded-xl object-cover border" />}
-                    <input ref={coverRef} type="file" accept="image/*" className="mt-2 text-sm" />
+                    <ImageUpload
+                      label="Shop Cover"
+                      value={form.cover_image_url || ''}
+                      onChange={v => setForm({ ...form, cover_image_url: v })}
+                    />
                   </div>
                 </div>
                 <button onClick={saveShop} disabled={saving} className="rounded-xl bg-stone-900 px-5 py-2.5 text-sm font-bold text-white disabled:opacity-50">
