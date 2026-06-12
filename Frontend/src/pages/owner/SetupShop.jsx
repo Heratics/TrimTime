@@ -14,11 +14,11 @@ export default function SetupShop() {
     district: '',
     address: '',
     google_maps_url: '',
+    logo_url: '',
+    cover_image_url: '',
   })
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
-  const logoRef = useRef()
-  const coverRef = useRef()
 
   async function submit(e) {
     e.preventDefault()
@@ -26,11 +26,7 @@ export default function SetupShop() {
     setSubmitting(true)
     setError('')
     try {
-      const data = new FormData()
-      Object.entries(form).forEach(([k, v]) => data.append(k, v))
-      if (logoRef.current?.files[0]) data.append('logo', logoRef.current.files[0])
-      if (coverRef.current?.files[0]) data.append('cover_image', coverRef.current.files[0])
-      await api.post('/owner/shop', data, { headers: { 'Content-Type': 'multipart/form-data' } })
+      await api.post('/shops', form, { headers: { 'Content-Type': 'application/json' } })
       navigate('/owner', { replace: true })
     } catch {
       setError(t('setup_err'))
@@ -121,14 +117,24 @@ export default function SetupShop() {
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2">
-          <div>
-            <p className="text-sm font-medium text-stone-700">{t('setup_logo')}</p>
-            <input ref={logoRef} type="file" accept="image/*" className="mt-2 text-sm" />
-          </div>
-          <div>
-            <p className="text-sm font-medium text-stone-700">{t('setup_cover')}</p>
-            <input ref={coverRef} type="file" accept="image/*" className="mt-2 text-sm" />
-          </div>
+          <label className="block text-sm font-medium text-stone-700">
+            {t('setup_logo')} (URL)
+            <input
+              value={form.logo_url}
+              onChange={e => update('logo_url', e.target.value)}
+              placeholder="https://..."
+              className="mt-1 w-full rounded-xl border px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-stone-900"
+            />
+          </label>
+          <label className="block text-sm font-medium text-stone-700">
+            {t('setup_cover')} (URL)
+            <input
+              value={form.cover_image_url}
+              onChange={e => update('cover_image_url', e.target.value)}
+              placeholder="https://..."
+              className="mt-1 w-full rounded-xl border px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-stone-900"
+            />
+          </label>
         </div>
 
         <button
