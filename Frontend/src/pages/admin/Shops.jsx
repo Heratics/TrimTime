@@ -81,14 +81,14 @@ export default function Shops() {
             <div>
               <div className="font-semibold">{shop.name}</div>
               <div className="text-sm text-gray-600">{shop.city || 'No city'} — {shop.address || 'No address'}</div>
-              <span className={`mt-1 inline-block rounded-full px-2 py-0.5 text-xs font-semibold ${shop.is_active !== false ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'}`}>
-                {shop.is_active !== false ? 'Active' : 'Disabled'}
+              <span className={`mt-1 inline-block rounded-full px-2 py-0.5 text-xs font-semibold ${!!shop.is_active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'}`}>
+                {!!shop.is_active ? 'Active' : 'Disabled'}
               </span>
             </div>
             <div className="flex gap-2">
               <button onClick={() => setEditing({ ...shop })} className="rounded-lg border px-3 py-2 text-sm">Edit</button>
-              <button onClick={() => toggle(shop)} className={`rounded-lg px-3 py-2 text-sm text-white ${shop.is_active !== false ? 'bg-amber-500' : 'bg-green-600'}`}>
-                {shop.is_active !== false ? 'Disable' : 'Enable'}
+              <button onClick={() => toggle(shop)} className={`rounded-lg px-3 py-2 text-sm text-white ${!!shop.is_active ? 'bg-amber-500' : 'bg-green-600'}`}>
+                {!!shop.is_active ? 'Disable' : 'Enable'}
               </button>
               <button onClick={() => remove(shop)} className="rounded-lg bg-red-500 px-3 py-2 text-sm text-white">Delete</button>
             </div>
