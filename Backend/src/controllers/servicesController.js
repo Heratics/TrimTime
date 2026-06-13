@@ -112,6 +112,29 @@ async function updateService(req, res, next) {
   }
 }
 
+async function updateServiceStatus(req, res, next) {
+  try {
+    const ownerId = req.user.userId;
+    const shop = await shopService.getByOwnerId(ownerId);
+    if (!shop) return res.status(404).json({ error: 'Owner has no shop' });
+
+    const serviceId = Number(req.params.id);
+    const service = await servicesService.getById(serviceId);
+    if (!service) return res.status(404).json({ error: 'Service not found' });
+
+    if (service.shop_id !== shop.id) return res.status(403).json({ error: 'Forbidden' });
+
+    if (req.body.is_active === undefined) {
+      return res.status(400).json({ error: 'is_active is required' });
+    }
+
+    const updated = await servicesService.updateById(serviceId, { is_active: !!req.body.is_active });
+    res.json({ service: updated });
+  } catch (err) {
+    next(err);
+  }
+}
+
 async function deleteService(req, res, next) {
   try {
     const ownerId = req.user.userId;
@@ -136,5 +159,6 @@ module.exports = {
   getServices,
   getService,
   updateService,
+  updateServiceStatus,
   deleteService
 };

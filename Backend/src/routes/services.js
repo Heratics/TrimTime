@@ -5,6 +5,7 @@ const {
   getServices,
   getService,
   updateService,
+  updateServiceStatus,
   deleteService
 } = require('../controllers/servicesController');
 
@@ -24,6 +25,9 @@ router.get('/:id', getService);
 
 // PUT /api/services/:id - Update a service
 router.put('/:id', updateService);
+
+// PATCH /api/services/:id/status - Toggle active/disabled status
+router.patch('/:id/status', updateServiceStatus);
 
 // DELETE /api/services/:id - Delete a service
 router.delete('/:id', deleteService);
