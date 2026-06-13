@@ -57,7 +57,7 @@ async function list(req, res, next) {
     const shops = await shopService.getAll();
     const publicShops = await Promise.all(
       shops
-        .filter(shop => String(shop.city || '').toLowerCase() === 'aqaba')
+        .filter(shop => !!shop.is_active && String(shop.city || '').toLowerCase() === 'aqaba')
         .map(getPublicShop)
     );
 
@@ -80,7 +80,7 @@ async function list(req, res, next) {
 async function getBySlug(req, res, next) {
   try {
     const shop = await shopService.getBySlug(req.params.slug);
-    if (!shop || String(shop.city || '').toLowerCase() !== 'aqaba') {
+    if (!shop || !shop.is_active || String(shop.city || '').toLowerCase() !== 'aqaba') {
       return res.status(404).json({ error: 'Shop not found' });
     }
 
