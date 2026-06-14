@@ -1,10 +1,12 @@
 import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import auth from '../../services/auth'
+import api from '../../services/api'
+import { useAuth } from '../../context/AuthContext'
 import { useLanguage } from '../../context/LanguageContext'
 
 export default function Login() {
   const navigate = useNavigate()
+  const { login } = useAuth()
   const { t } = useLanguage()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -16,7 +18,9 @@ export default function Login() {
     setSubmitting(true)
     setError('')
     try {
-      const user = await auth.login(email, password)
+      const res = await api.post('/auth/login', { email, password })
+      const { user, token } = res.data
+      login(user, token)
       if (user.role === 'barber') navigate('/barber', { replace: true })
       else if (user.role === 'owner') navigate('/owner', { replace: true })
       else if (user.role === 'admin') navigate('/admin', { replace: true })

@@ -27,9 +27,9 @@ import BookAppointment from './pages/public/BookAppointment'
 import Login from './pages/Auth/Login'
 import Register from './pages/Auth/Register'
 import ProtectedRoute from './components/ProtectedRoute'
-import auth from './services/auth'
 import BarberSettings from './pages/barber/Settings'
 import OwnerProducts from './pages/owner/Products'
+import { useAuth } from './context/AuthContext'
 
 export default function App() {
   return (
@@ -40,7 +40,7 @@ export default function App() {
       {/* Owner registration — only accessible if you know the URL */}
       <Route path="/staff/register" element={<Register />} />
 
-      {/* Public-facing site — no login button */}
+      {/* Public-facing site */}
       <Route path="/" element={<PublicLayout />}>
         <Route index element={<PublicHome />} />
         <Route path="shops" element={<PublicShops />} />
@@ -84,10 +84,10 @@ export default function App() {
 }
 
 function RoleRedirect() {
-  const user = auth.getCurrentUser()
-  if (!user) return <Navigate to="/" replace />
-  if (user.role === 'barber') return <Navigate to="/barber" replace />
-  if (user.role === 'owner') return <Navigate to="/owner" replace />
-  if (user.role === 'admin') return <Navigate to="/admin" replace />
+  const { user, isAuthenticated } = useAuth()
+  if (!isAuthenticated) return <Navigate to="/" replace />
+  if (user?.role === 'barber') return <Navigate to="/barber" replace />
+  if (user?.role === 'owner') return <Navigate to="/owner" replace />
+  if (user?.role === 'admin') return <Navigate to="/admin" replace />
   return <Navigate to="/" replace />
 }

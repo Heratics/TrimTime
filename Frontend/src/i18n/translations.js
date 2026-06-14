@@ -8,6 +8,7 @@ const translations = {
     nav_login: 'Login',
     nav_register: 'Register',
     nav_sign_out: 'Sign Out',
+    nav_go_to_dashboard: 'Go to Dashboard',
 
     // --- Navigation / Owner sidebar ---
     nav_appointments: 'Appointments',
@@ -454,6 +455,7 @@ const translations = {
     nav_login: 'تسجيل الدخول',
     nav_register: 'إنشاء حساب',
     nav_sign_out: 'تسجيل الخروج',
+    nav_go_to_dashboard: 'الذهاب إلى لوحة التحكم',
 
     // --- Navigation / Owner sidebar ---
     nav_appointments: 'المواعيد',

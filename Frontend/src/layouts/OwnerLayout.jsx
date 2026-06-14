@@ -1,17 +1,21 @@
 import React from 'react'
 import { Outlet, useNavigate } from 'react-router-dom'
 import Sidebar from '../components/Sidebar'
-import auth from '../services/auth'
+import { useAuth } from '../context/AuthContext'
 import { useLanguage } from '../context/LanguageContext'
 
 export default function OwnerLayout() {
   const navigate = useNavigate()
-  const user = auth.getCurrentUser()
+  const { user, logout } = useAuth()
   const { lang, setLang, t } = useLanguage()
 
-  function logout() {
-    auth.logout()
-    navigate('/staff/login', { replace: true })
+  function handleLogout() {
+    logout()
+    navigate('/', { replace: true })
+  }
+
+  function goHome() {
+    navigate('/')
   }
 
   function toggleLang() {
@@ -33,7 +37,13 @@ export default function OwnerLayout() {
             </button>
             {user && <span className="text-sm text-gray-500 hidden sm:block">{user.full_name}</span>}
             <button
-              onClick={logout}
+              onClick={goHome}
+              className="rounded-lg border px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-50"
+            >
+              {t('nav_home')}
+            </button>
+            <button
+              onClick={handleLogout}
               className="rounded-lg border px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-50"
             >
               {t('nav_sign_out')}

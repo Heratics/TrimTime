@@ -1,7 +1,7 @@
 import React from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import Sidebar from '../components/Sidebar'
-import auth from '../services/auth'
+import { useAuth } from '../context/AuthContext'
 
 const items = [
   { to: '/admin', label: 'Home' },
@@ -14,11 +14,15 @@ const items = [
 
 export default function AdminLayout() {
   const navigate = useNavigate()
-  const user = auth.getCurrentUser()
+  const { user, logout } = useAuth()
 
-  function logout() {
-    auth.logout()
-    navigate('/staff/login', { replace: true })
+  function handleLogout() {
+    logout()
+    navigate('/', { replace: true })
+  }
+
+  function goHome() {
+    navigate('/')
   }
 
   return (
@@ -30,7 +34,13 @@ export default function AdminLayout() {
           <div className="flex items-center gap-3">
             {user && <span className="text-sm text-gray-500 hidden sm:block">{user.full_name}</span>}
             <button
-              onClick={logout}
+              onClick={goHome}
+              className="rounded-lg border px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-50"
+            >
+              Home
+            </button>
+            <button
+              onClick={handleLogout}
               className="rounded-lg border px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-50"
             >
               Sign Out
