@@ -66,6 +66,17 @@ export default function BookAppointment() {
           <div key={number} className={`h-2 flex-1 rounded-full ${step >= number ? 'bg-amber-500' : 'bg-stone-200'}`} />
         ))}
       </div>
+
+      {/* Cancel Appointment secondary link */}
+      <div className="mt-4 text-center">
+        <Link
+          to={`/shop/${slug}/cancel`}
+          className="text-sm text-stone-500 underline underline-offset-2 hover:text-stone-800"
+        >
+          {t('cancel_appointment_link')}
+        </Link>
+      </div>
+
       {error && <div className="mt-5 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">{error}</div>}
 
       {step === 1 && (
@@ -169,7 +180,18 @@ function Success({ shop, selection, appointment, t }) {
             </span>
           </div>
         </div>
-        <Link to={`/shop/${shop.slug}`} className="mt-6 inline-block rounded-xl bg-stone-900 px-6 py-3 font-bold text-white">
+
+        {/* Cancel Appointment button — secondary, visually distinct */}
+        <div className="mt-4">
+          <Link
+            to={`/shop/${shop.slug}/cancel`}
+            className="inline-block rounded-xl border border-stone-300 px-5 py-2.5 text-sm font-semibold text-stone-600 hover:bg-stone-50"
+          >
+            {t('cancel_appointment_link')}
+          </Link>
+        </div>
+
+        <Link to={`/shop/${shop.slug}`} className="mt-3 inline-block rounded-xl bg-stone-900 px-6 py-3 font-bold text-white">
           {t('book_success_back')} {shop.name}
         </Link>
       </div>

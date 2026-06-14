@@ -25,7 +25,6 @@ class AppointmentsService {
       return rows;
     }
 
-    // No status filtering
     const [rows] = await pool.query(
       'SELECT * FROM appointments WHERE barber_id = ? AND appointment_date = ?',
       [barberId, date]
@@ -66,6 +65,46 @@ class AppointmentsService {
   async updateStatus(id, newStatus) {
     await pool.query('UPDATE appointments SET status = ? WHERE id = ?', [newStatus, id]);
     return this.getById(id);
+  }
+
+  // Cancel via public flow — uses confirmation number (= appointment id) + phone match
+  async cancelByCustomer(confirmationNumber, phoneNumber) {
+    const id = Number(confirmationNumber);
+    if (!id || isNaN(id)) return { error: 'Appointment not found.' };
+
+    const appointment = await this.getById(id);
+    if (!appointment) return { error: 'Appointment not found.' };
+
+    // Phone must match (normalise whitespace only — keep digits as-is)
+    const normalise = p => String(p || '').replace(/\s+/g, '');
+    if (normalise(appointment.customer_phone) !== normalise(phoneNumber)) {
+      return { error: 'Confirmation number and phone number do not match.' };
+    }
+
+    if (appointment.status === 'cancelled') {
+      return { error: 'This appointment has already been cancelled.' };
+    }
+
+    // Check if appointment date/time has passed (Amman timezone)
+    const apptDateTime = new Date(`${appointment.appointment_date}T${appointment.appointment_time}`);
+    const nowAmman = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Amman' }));
+    if (apptDateTime < nowAmman) {
+      return { error: 'This appointment has already passed and cannot be cancelled.' };
+    }
+
+    if (!['pending', 'confirmed'].includes(appointment.status)) {
+      return { error: 'This appointment cannot be cancelled.' };
+    }
+
+    // Cancel it — set cancelled_at and cancel_reason (future-proofed)
+    await pool.query(
+      `UPDATE appointments
+       SET status = 'cancelled', cancelled_at = NOW(), cancel_reason = ?
+       WHERE id = ?`,
+      ['customer_request', id]
+    );
+
+    return { appointment: await this.getById(id) };
   }
 }
 

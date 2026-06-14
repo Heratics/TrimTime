@@ -22,50 +22,41 @@ async function createAppointment(req, res, next) {
   } = req.body;
 
   try {
-    // Basic validation
     if (!shop_id || !barber_id || !service_id || !customer_name || !customer_phone || !appointment_date || !appointment_time) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
-    // 1. Validate barber
     const barber = await barberService.getById(barber_id);
     if (!barber) return res.status(404).json({ error: 'Barber not found' });
     if (!barber.is_active) return res.status(400).json({ error: 'Barber is disabled' });
 
-    // 2. Validate shop
     const shop = await shopService.getById(shop_id);
     if (!shop) return res.status(404).json({ error: 'Shop not found' });
     if (barber.shop_id !== shop.id) return res.status(400).json({ error: 'Barber does not belong to shop' });
 
-    // 3. Validate service
     const service = await servicesService.getById(service_id);
     if (!service) return res.status(404).json({ error: 'Service not found' });
     if (!service.is_active) return res.status(400).json({ error: 'Service is not active' });
     if (service.shop_id !== shop.id) return res.status(400).json({ error: 'Service does not belong to shop' });
 
-    // 5. Validate appointment date/time format
     const dt = new Date(appointment_date + 'T00:00:00');
     if (isNaN(dt.getTime())) return res.status(400).json({ error: 'Invalid appointment_date' });
     if (!/^\d{2}:\d{2}(:\d{2})?$/.test(appointment_time)) return res.status(400).json({ error: 'Invalid appointment_time' });
 
-    // 6. Re-run availability validation: check requested time is in availability
     const slots = await availabilityService.getAvailableSlots({ barberId: barber_id, serviceId: service_id, date: appointment_date });
     if (!slots.includes(appointment_time.slice(0,5))) {
       return res.status(409).json({ error: 'Requested slot not available' });
     }
 
-    // 8-9. Prevent double booking and create appointment within transaction using SELECT ... FOR UPDATE
     const conn = await pool.getConnection();
     try {
       await conn.beginTransaction();
 
-      // Lock relevant appointments for this barber/date
       const [rows] = await conn.query(
         "SELECT * FROM appointments WHERE barber_id = ? AND appointment_date = ? AND status IN ('pending','confirmed') FOR UPDATE",
         [barber_id, appointment_date]
       );
 
-      // Re-check conflict against locked rows
       const apStart = timeToMinutes(appointment_time);
       const apEnd = apStart + Number(service.duration_minutes);
       const conflict = rows.some(r => {
@@ -79,7 +70,6 @@ async function createAppointment(req, res, next) {
         return res.status(409).json({ error: 'Requested slot conflicts with existing appointment' });
       }
 
-      // Insert appointment (snapshot service fields)
       try {
         const created = await appointmentsService.create(conn, {
           shop_id, barber_id, service_id,
@@ -99,7 +89,6 @@ async function createAppointment(req, res, next) {
         const appointment = await appointmentsService.getById(created);
         return res.status(201).json({ appointment });
       } catch (err) {
-        // Duplicate-key error protection: unique constraint on barber/date/time
         if (err && (err.code === 'ER_DUP_ENTRY' || err.errno === 1062)) {
           await conn.rollback();
           conn.release();
@@ -112,6 +101,28 @@ async function createAppointment(req, res, next) {
       conn.release();
       throw err;
     }
+  } catch (err) {
+    next(err);
+  }
+}
+
+// Public cancellation — no auth required
+async function cancelAppointment(req, res, next) {
+  try {
+    const { confirmationNumber, phoneNumber } = req.body;
+    if (!confirmationNumber || !phoneNumber) {
+      return res.status(400).json({ error: 'Confirmation number and phone number are required.' });
+    }
+
+    const result = await appointmentsService.cancelByCustomer(confirmationNumber, phoneNumber);
+    if (result.error) {
+      return res.status(400).json({ error: result.error });
+    }
+
+    // Notification stub — wire up when notification system is ready
+    // notificationService.appointmentCancelled(result.appointment)
+
+    return res.json({ appointment: result.appointment });
   } catch (err) {
     next(err);
   }
@@ -145,7 +156,7 @@ async function getAppointmentsForBarber(req, res, next) {
   }
 }
 
-// Update appointment status
+// Update appointment status (staff only)
 async function updateAppointmentStatus(req, res, next) {
   try {
     const userId = req.user.userId;
@@ -156,7 +167,6 @@ async function updateAppointmentStatus(req, res, next) {
     const appointment = await appointmentsService.getById(Number(id));
     if (!appointment) return res.status(404).json({ error: 'Appointment not found' });
 
-    // Determine actor permissions: owner of shop or barber assigned
     const actorIsOwner = (req.user.role === 'owner');
     const actorIsBarber = (req.user.role === 'barber');
     let allowed = false;
@@ -172,15 +182,14 @@ async function updateAppointmentStatus(req, res, next) {
 
     if (!allowed) return res.status(403).json({ error: 'Forbidden' });
 
-    // Validate allowed transitions
-    const from = appointment.status;
-    const to = status;
     const allowedTransitions = {
       pending: ['confirmed','cancelled'],
       confirmed: ['completed','cancelled'],
       completed: [],
       cancelled: []
     };
+    const from = appointment.status;
+    const to = status;
     if (!allowedTransitions[from].includes(to)) return res.status(400).json({ error: `Invalid status transition from ${from} to ${to}` });
 
     const updated = await appointmentsService.updateStatus(appointment.id, to);
@@ -192,6 +201,7 @@ async function updateAppointmentStatus(req, res, next) {
 
 module.exports = {
   createAppointment,
+  cancelAppointment,
   getAppointmentsForShop,
   getAppointmentsForBarber,
   updateAppointmentStatus

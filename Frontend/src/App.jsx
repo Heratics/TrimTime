@@ -24,6 +24,7 @@ import PublicHome from './pages/public/Home'
 import PublicShops from './pages/public/Shops'
 import ShopProfile from './pages/public/ShopProfile'
 import BookAppointment from './pages/public/BookAppointment'
+import CancelAppointment from './pages/public/CancelAppointment'
 import Login from './pages/Auth/Login'
 import Register from './pages/Auth/Register'
 import ProtectedRoute from './components/ProtectedRoute'
@@ -46,6 +47,7 @@ export default function App() {
         <Route path="shops" element={<PublicShops />} />
         <Route path="shop/:slug" element={<ShopProfile />} />
         <Route path="shop/:slug/book" element={<BookAppointment />} />
+        <Route path="shop/:slug/cancel" element={<CancelAppointment />} />
       </Route>
 
       {/* Owner portal */}
