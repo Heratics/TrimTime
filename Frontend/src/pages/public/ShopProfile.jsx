@@ -38,9 +38,16 @@ export default function ShopProfile() {
                 </span>
               </div>
             </div>
-            <Link to={`/shop/${shop.slug}/book`} className="rounded-xl bg-amber-500 px-5 py-3 text-center font-bold">
-              {t('profile_book')}
-            </Link>
+
+            {/* Book + Cancel buttons stacked */}
+            <div className="flex flex-col items-center gap-2">
+              <Link to={`/shop/${shop.slug}/book`} className="rounded-xl bg-amber-500 px-5 py-3 text-center font-bold w-full sm:w-auto">
+                {t('profile_book')}
+              </Link>
+              <Link to={`/shop/${shop.slug}/cancel`} className="text-sm text-stone-500 underline underline-offset-2 hover:text-stone-800">
+                {t('cancel_appointment_link')}
+              </Link>
+            </div>
           </div>
           <p className="mt-5 text-stone-600">{shop.description || t('profile_default_desc')}</p>
           {shop.google_maps_url && (
