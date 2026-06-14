@@ -41,15 +41,17 @@ async function create({ shopId, reviewerName, rating, comment }) {
 async function createTable() {
   await pool.query(`
     CREATE TABLE IF NOT EXISTS reviews (
-      review_id   INT          NOT NULL AUTO_INCREMENT,
-      shop_id     INT          NOT NULL,
+      review_id INT NOT NULL AUTO_INCREMENT,
+      shop_id INT NOT NULL,
       reviewer_name VARCHAR(100) NOT NULL,
-      rating      DECIMAL(2,1) NOT NULL,
-      comment     TEXT         NULL,
-      created_at  DATETIME     NOT NULL DEFAULT UTC_TIMESTAMP(),
+      rating DECIMAL(2,1) NOT NULL,
+      comment TEXT NULL,
+      created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
       PRIMARY KEY (review_id),
-      CONSTRAINT fk_reviews_shop FOREIGN KEY (shop_id) REFERENCES shops(shop_id) ON DELETE CASCADE,
-      CONSTRAINT chk_rating CHECK (rating >= 0 AND rating <= 5)
+      CONSTRAINT fk_reviews_shop
+      FOREIGN KEY (shop_id)
+      REFERENCES shops(id)
+      ON DELETE CASCADE
     )
   `);
 }
