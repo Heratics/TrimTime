@@ -42,11 +42,17 @@ async function updateById(id, data) {
 }
 
 async function deleteById(id) {
+  // Fetch barber first so we can remove their linked user account
+  const barber = await getById(id);
   await pool.query('DELETE FROM appointments WHERE barber_id = ?', [id]);
   await pool.query('DELETE FROM barber_schedule WHERE barber_id = ?', [id]);
   await pool.query('DELETE FROM barber_breaks WHERE barber_id = ?', [id]);
   await pool.query('DELETE FROM barber_time_off WHERE barber_id = ?', [id]);
   await pool.query('DELETE FROM barbers WHERE id = ?', [id]);
+  // Remove the linked login account so the email can be reused
+  if (barber && barber.user_id) {
+    await pool.query('DELETE FROM users WHERE id = ?', [barber.user_id]);
+  }
 }
 
 async function getByUserId(user_id) {
