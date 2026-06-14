@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { StarDisplay } from './StarRating'
-import ReviewModal from './ReviewModal'
+import ReviewModal from '../ReviewModal'
 import { fetchShopReviews } from '../../services/publicShopService'
 import { useLanguage } from '../../context/LanguageContext'
 
