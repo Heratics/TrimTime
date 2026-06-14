@@ -3,6 +3,7 @@ const servicesService = require('../services/servicesService');
 const shopHoursService = require('../services/shopHoursService');
 const shopService = require('../services/shopService');
 const productService = require('../services/productService');
+const reviewService = require('../services/reviewService');
 
 const dayNumbers = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 };
 
@@ -29,11 +30,12 @@ function isOpenNow(hours, now = new Date()) {
 }
 
 async function getPublicShop(shop) {
-  const [hours, barbers, services, products] = await Promise.all([
+  const [hours, barbers, services, products, reviewStats] = await Promise.all([
     shopHoursService.getShopHoursByShopId(shop.id),
     barberService.getByShopId(shop.id),
     servicesService.getByShopId(shop.id),
     productService.getByShopId(shop.id),
+    reviewService.getStatsForShop(shop.id),
   ]);
 
   const { owner_user_id, ...publicShop } = shop;
@@ -46,6 +48,8 @@ async function getPublicShop(shop) {
     services: services.filter(service => service.is_active),
     products,
     is_open_now: isOpenNow(hours),
+    average_rating: reviewStats.averageRating,
+    total_reviews: reviewStats.totalReviews,
   };
 }
 

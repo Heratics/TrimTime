@@ -6,6 +6,7 @@ const morgan = require('morgan');
 
 const routes = require('./routes');
 const { errorHandler } = require('./middleware/errorHandler');
+const reviewService = require('./services/reviewService');
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -21,6 +22,7 @@ app.get('/', (req, res) => res.json({ status: 'ok', app: 'trimtime-backend' }));
 
 app.use(errorHandler);
 
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
+  await reviewService.createTable().catch(err => console.error('Reviews migration error:', err));
   console.log(`TrimTime backend listening on port ${PORT}`);
 });

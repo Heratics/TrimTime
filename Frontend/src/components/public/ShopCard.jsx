@@ -13,10 +13,22 @@ export default function ShopCard({ shop }){
           <span className={`rounded-full px-2 py-1 text-xs font-semibold ${shop.is_open_now ? 'bg-green-100 text-green-700' : 'bg-stone-100 text-stone-600'}`}>{shop.is_open_now ? 'Open now' : 'Closed'}</span>
         </div>
         <h2 className="font-bold group-hover:text-amber-700">{shop.name}</h2>
+        <RatingBadge avg={shop.average_rating} count={shop.total_reviews} />
         <p className="mt-1 text-sm text-stone-500">{shop.district || 'Aqaba'}</p>
         <p className="mt-3 line-clamp-2 text-sm text-stone-600">{shop.description || 'Book your next barber appointment in Aqaba.'}</p>
       </div>
     </Link>
+  )
+}
+
+function RatingBadge({ avg, count }) {
+  if (!count) return <p className="mt-0.5 text-xs text-stone-400">No Reviews Yet</p>
+  return (
+    <p className="mt-0.5 flex items-center gap-1 text-xs text-stone-600">
+      <span className="text-amber-500">★</span>
+      <span className="font-semibold">{Number(avg).toFixed(1)}</span>
+      <span className="text-stone-400">({count})</span>
+    </p>
   )
 }
 

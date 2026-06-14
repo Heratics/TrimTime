@@ -13,3 +13,13 @@ export async function fetchPublicShop(slug){
   const res = await api.get(`/public/shops/${slug}`)
   return res.data
 }
+
+export async function fetchShopReviews(shopId){
+  const res = await api.get(`/reviews/shop/${shopId}`)
+  return res.data
+}
+
+export async function submitReview({ shopId, reviewerName, rating, comment }){
+  const res = await api.post('/reviews', { shopId, reviewerName, rating, comment })
+  return res.data
+}

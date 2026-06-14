@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import BarberCard from '../../components/public/BarberCard'
 import ServiceCard from '../../components/public/ServiceCard'
+import ReviewsSection from '../../components/public/ReviewsSection'
+import { StarDisplay } from '../../components/public/StarRating'
 import { fetchPublicShop } from '../../services/publicShopService'
 import { useLanguage } from '../../context/LanguageContext'
 
@@ -10,9 +12,16 @@ export default function ShopProfile() {
   const { t } = useLanguage()
   const [shop, setShop] = useState(null)
   const [error, setError] = useState('')
+  const [reviewStats, setReviewStats] = useState({ averageRating: 0, totalReviews: 0 })
 
   useEffect(() => {
-    fetchPublicShop(slug).then(response => setShop(response.shop)).catch(() => setError(t('profile_not_found')))
+    fetchPublicShop(slug).then(response => {
+      setShop(response.shop)
+      setReviewStats({
+        averageRating: response.shop.average_rating || 0,
+        totalReviews: response.shop.total_reviews || 0,
+      })
+    }).catch(() => setError(t('profile_not_found')))
   }, [slug])
 
   if (error) return <Message text={error} />
@@ -32,14 +41,14 @@ export default function ShopProfile() {
               <Logo shop={shop} />
               <div>
                 <h1 className="text-2xl font-black">{shop.name}</h1>
-                <p className="text-sm text-stone-500">{shop.district || 'Aqaba'} - {shop.address || t('profile_default_address')}</p>
+                <ShopRating avg={reviewStats.averageRating} count={reviewStats.totalReviews} t={t} />
+                <p className="text-sm text-stone-500 mt-1">{shop.district || 'Aqaba'} - {shop.address || t('profile_default_address')}</p>
                 <span className={`mt-2 inline-block rounded-full px-2 py-1 text-xs font-bold ${shop.is_open_now ? 'bg-green-100 text-green-700' : 'bg-stone-100 text-stone-600'}`}>
                   {shop.is_open_now ? t('profile_open_now') : t('profile_closed_now')}
                 </span>
               </div>
             </div>
 
-            {/* Book + Cancel buttons stacked */}
             <div className="flex flex-col items-center gap-2">
               <Link to={`/shop/${shop.slug}/book`} className="rounded-xl bg-amber-500 px-5 py-3 text-center font-bold w-full sm:w-auto">
                 {t('profile_book')}
@@ -106,7 +115,26 @@ export default function ShopProfile() {
             </div>
           </section>
         )}
+
+        {/* Customer Reviews — below products */}
+        <ReviewsSection
+          shopId={shop.id}
+          initialAvg={reviewStats.averageRating}
+          initialCount={reviewStats.totalReviews}
+          onStatsChange={setReviewStats}
+        />
       </div>
+    </div>
+  )
+}
+
+function ShopRating({ avg, count, t }) {
+  if (!count) return <p className="mt-1 text-xs text-stone-400">{t('reviews_no_reviews')}</p>
+  return (
+    <div className="mt-1 flex items-center gap-1.5">
+      <StarDisplay rating={avg} size="sm" />
+      <span className="text-sm font-bold">{Number(avg).toFixed(1)}</span>
+      <span className="text-xs text-stone-500">({count})</span>
     </div>
   )
 }

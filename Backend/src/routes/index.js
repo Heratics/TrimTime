@@ -14,6 +14,7 @@ const barberDashboardRoutes = require('./barber');
 const adminRoutes = require('./admin');
 const publicShopRoutes = require('./publicShops');
 const productRoutes = require('./products');
+const reviewRoutes = require('./reviews');
 
 router.get('/health', health.getHealth);
 router.use('/auth', authRoutes);
@@ -28,5 +29,6 @@ router.use('/barber', barberDashboardRoutes);
 router.use('/admin', adminRoutes);
 router.use('/public/shops', publicShopRoutes);
 router.use('/products', productRoutes);
+router.use('/reviews', reviewRoutes);
 
 module.exports = router;
