@@ -6,13 +6,18 @@ import ReviewsSection from '../../components/public/ReviewsSection'
 import { StarDisplay } from '../../components/public/StarRating'
 import { fetchPublicShop } from '../../services/publicShopService'
 import { useLanguage } from '../../context/LanguageContext'
+import { useAuth } from '../../context/AuthContext'
+import WalkInModal from '../../components/public/WalkInModal'
 
 export default function ShopProfile() {
   const { slug } = useParams()
   const { t } = useLanguage()
+  const { user, isAuthenticated } = useAuth()
   const [shop, setShop] = useState(null)
   const [error, setError] = useState('')
   const [reviewStats, setReviewStats] = useState({ averageRating: 0, totalReviews: 0 })
+  const [showWalkIn, setShowWalkIn] = useState(false)
+  const [walkInSuccess, setWalkInSuccess] = useState(null)
 
   useEffect(() => {
     fetchPublicShop(slug).then(response => {
@@ -28,6 +33,28 @@ export default function ShopProfile() {
   if (!shop) return <Message text={t('profile_loading')} />
 
   const days = [t('days_0'), t('days_1'), t('days_2'), t('days_3'), t('days_4'), t('days_5'), t('days_6')]
+
+  // ── Walk-In visibility logic ─────────────────────────────────────────────
+  // Show button only to admin, owner (of this shop), or barber (of this shop)
+  const canWalkIn = (() => {
+    if (!isAuthenticated || !user) return false
+    if (user.role === 'admin') return true
+    if (user.role === 'owner') {
+      // owner's shop_id is stored in user object (set during login)
+      // We compare against shop.owner_user_id if available, otherwise allow and let backend verify
+      return true
+    }
+    if (user.role === 'barber') {
+      // Same: let backend verify, but only show button for barbers
+      return true
+    }
+    return false
+  })()
+
+  function handleWalkInSuccess(appointment) {
+    setShowWalkIn(false)
+    setWalkInSuccess(appointment)
+  }
 
   return (
     <div>
@@ -56,8 +83,36 @@ export default function ShopProfile() {
               <Link to={`/shop/${shop.slug}/cancel`} className="text-sm text-stone-500 underline underline-offset-2 hover:text-stone-800">
                 {t('cancel_appointment_link')}
               </Link>
+              {canWalkIn && (
+                <button
+                  onClick={() => { setWalkInSuccess(null); setShowWalkIn(true) }}
+                  className="rounded-xl border-2 border-stone-800 bg-stone-900 px-5 py-2.5 text-sm font-bold text-white w-full sm:w-auto hover:bg-stone-700"
+                >
+                  {t('walkin_button') || '🚶 Walk-In'}
+                </button>
+              )}
             </div>
           </div>
+
+          {/* Walk-in success banner */}
+          {walkInSuccess && (
+            <div className="mt-4 rounded-2xl border border-green-200 bg-green-50 px-4 py-3">
+              <p className="text-sm font-semibold text-green-800">
+                {t('walkin_success_title') || '✓ Walk-in booked!'}
+              </p>
+              <p className="text-sm text-green-700">
+                {walkInSuccess.customer_name} — {walkInSuccess.service_name} at {String(walkInSuccess.appointment_time).slice(0, 5)}
+                {' '}({t('walkin_confirmation') || 'Confirmation'} #{walkInSuccess.id})
+              </p>
+              <button
+                onClick={() => setWalkInSuccess(null)}
+                className="mt-1 text-xs text-green-600 underline"
+              >
+                {t('walkin_dismiss') || 'Dismiss'}
+              </button>
+            </div>
+          )}
+
           <p className="mt-5 text-stone-600">{shop.description || t('profile_default_desc')}</p>
           {shop.google_maps_url && (
             <a href={shop.google_maps_url} target="_blank" rel="noreferrer" className="mt-4 inline-block text-sm font-bold text-amber-700">
@@ -124,6 +179,15 @@ export default function ShopProfile() {
           onStatsChange={setReviewStats}
         />
       </div>
+
+      {/* Walk-In Modal */}
+      {showWalkIn && (
+        <WalkInModal
+          shop={shop}
+          onClose={() => setShowWalkIn(false)}
+          onSuccess={handleWalkInSuccess}
+        />
+      )}
     </div>
   )
 }

@@ -71,10 +71,17 @@ export default function BarberAppointments() {
           <div key={a.id} className="rounded-2xl border bg-white p-4 shadow-sm">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
-                <p className="font-bold">{a.customer_name}</p>
+                <div className="flex items-center gap-2">
+                  <p className="font-bold">{a.customer_name}</p>
+                  {a.booking_type === 'walkin' && (
+                    <span className="rounded-full bg-stone-900 px-2 py-0.5 text-xs font-bold text-white">
+                      {t('walkin_badge') || 'Walk-In'}
+                    </span>
+                  )}
+                </div>
                 <p className="text-sm text-stone-500">{a.customer_phone}</p>
                 <p className="text-sm text-stone-600 mt-1">{a.service_name}</p>
-                <p className="text-sm text-stone-500">{a.appointment_date} {a.appointment_time}</p>
+                <p className="text-sm text-stone-500">{a.appointment_date} {String(a.appointment_time).slice(0, 5)}</p>
               </div>
               <div className="flex flex-col items-end gap-2">
                 <StatusBadge status={a.status} t={t} />

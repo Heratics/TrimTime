@@ -52,12 +52,13 @@ class AppointmentsService {
     const q = connOrPool.query.bind(connOrPool);
     const {
       shop_id, barber_id, service_id, service_name, service_price, service_duration,
-      customer_name, customer_phone, appointment_date, appointment_time, status = 'pending'
+      customer_name, customer_phone, appointment_date, appointment_time,
+      status = 'pending', booking_type = 'online'
     } = data;
 
     const [result] = await q(
-      'INSERT INTO appointments (shop_id, barber_id, service_id, service_name, service_price, service_duration, customer_name, customer_phone, appointment_date, appointment_time, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-      [shop_id, barber_id, service_id, service_name, service_price, service_duration, customer_name, customer_phone, appointment_date, appointment_time, status]
+      'INSERT INTO appointments (shop_id, barber_id, service_id, service_name, service_price, service_duration, customer_name, customer_phone, appointment_date, appointment_time, status, booking_type) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      [shop_id, barber_id, service_id, service_name, service_price, service_duration, customer_name, customer_phone, appointment_date, appointment_time, status, booking_type]
     );
     return result.insertId;
   }

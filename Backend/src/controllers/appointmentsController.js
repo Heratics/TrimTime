@@ -13,7 +13,13 @@ function timeToMinutes(t) {
   return parts[0] * 60 + parts[1];
 }
 
-// Create appointment
+function minutesToTime(m) {
+  const hh = Math.floor(m / 60).toString().padStart(2, '0');
+  const mm = (m % 60).toString().padStart(2, '0');
+  return `${hh}:${mm}`;
+}
+
+// Create appointment (public)
 async function createAppointment(req, res, next) {
   const {
     shop_id, barber_id, service_id,
@@ -80,7 +86,8 @@ async function createAppointment(req, res, next) {
           customer_phone,
           appointment_date,
           appointment_time,
-          status: 'pending'
+          status: 'pending',
+          booking_type: 'online'
         });
 
         await conn.commit();
@@ -106,6 +113,131 @@ async function createAppointment(req, res, next) {
   }
 }
 
+// Walk-In appointment — staff only, finds earliest available slot automatically
+async function createWalkIn(req, res, next) {
+  try {
+    const { role, userId } = req.user;
+
+    // Only admin, owner, barber allowed
+    if (!['admin', 'owner', 'barber'].includes(role)) {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+
+    const { shop_id, barber_id, service_id, customer_name, customer_phone } = req.body;
+
+    if (!shop_id || !barber_id || !service_id || !customer_name) {
+      return res.status(400).json({ error: 'Missing required fields: shop_id, barber_id, service_id, customer_name' });
+    }
+
+    // ── Server-side permission check ────────────────────────────────────────
+    const shop = await shopService.getById(shop_id);
+    if (!shop) return res.status(404).json({ error: 'Shop not found' });
+
+    if (role === 'owner') {
+      // Owner must own this shop
+      const ownerShop = await shopService.getByOwnerId(userId);
+      if (!ownerShop || ownerShop.id !== shop.id) {
+        return res.status(403).json({ error: 'You do not own this shop' });
+      }
+    }
+
+    if (role === 'barber') {
+      // Barber must belong to this shop
+      const barberProfile = await barberService.getByUserId(userId);
+      if (!barberProfile || barberProfile.shop_id !== shop.id) {
+        return res.status(403).json({ error: 'You do not belong to this shop' });
+      }
+    }
+
+    // ── Validate barber and service ────────────────────────────────────────
+    const barber = await barberService.getById(barber_id);
+    if (!barber) return res.status(404).json({ error: 'Barber not found' });
+    if (!barber.is_active) return res.status(400).json({ error: 'Barber is disabled' });
+    if (barber.shop_id !== shop.id) return res.status(400).json({ error: 'Barber does not belong to this shop' });
+
+    const service = await servicesService.getById(service_id);
+    if (!service) return res.status(404).json({ error: 'Service not found' });
+    if (!service.is_active) return res.status(400).json({ error: 'Service is not active' });
+    if (service.shop_id !== shop.id) return res.status(400).json({ error: 'Service does not belong to this shop' });
+
+    // ── Find the earliest available slot starting from now ─────────────────
+    const todayStr = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Amman' });
+
+    let availableSlots = [];
+    try {
+      availableSlots = await availabilityService.getAvailableSlots({
+        barberId: barber_id,
+        serviceId: service_id,
+        date: todayStr
+      });
+    } catch (err) {
+      // If no working schedule today etc., return helpful message
+      const msg = (err && err.message) ? err.message : 'No availability today';
+      return res.status(409).json({ error: `No available slot: ${msg}` });
+    }
+
+    if (!availableSlots || availableSlots.length === 0) {
+      return res.status(409).json({ error: 'No available slots for today. The barber is fully booked.' });
+    }
+
+    // Pick the first (earliest) slot
+    const appointment_time = availableSlots[0];
+    const appointment_date = todayStr;
+
+    // ── Book with lock (same pattern as createAppointment) ────────────────
+    const conn = await pool.getConnection();
+    try {
+      await conn.beginTransaction();
+
+      const [rows] = await conn.query(
+        "SELECT * FROM appointments WHERE barber_id = ? AND appointment_date = ? AND status IN ('pending','confirmed') FOR UPDATE",
+        [barber_id, appointment_date]
+      );
+
+      const apStart = timeToMinutes(appointment_time);
+      const apEnd = apStart + Number(service.duration_minutes);
+      const conflict = rows.some(r => {
+        const rStart = timeToMinutes(r.appointment_time);
+        const rEnd = rStart + (Number(r.service_duration) || 0);
+        return apStart < rEnd && apEnd > rStart;
+      });
+
+      if (conflict) {
+        await conn.rollback();
+        conn.release();
+        return res.status(409).json({ error: 'Walk-in slot just became unavailable. Please try again.' });
+      }
+
+      const created = await appointmentsService.create(conn, {
+        shop_id,
+        barber_id,
+        service_id,
+        service_name: service.name,
+        service_price: service.price,
+        service_duration: service.duration_minutes,
+        customer_name,
+        customer_phone: customer_phone || null,
+        appointment_date,
+        appointment_time,
+        status: 'confirmed',  // Walk-ins are auto-confirmed
+        booking_type: 'walkin'
+      });
+
+      await conn.commit();
+      conn.release();
+
+      const appointment = await appointmentsService.getById(created);
+      return res.status(201).json({ appointment });
+    } catch (err) {
+      await conn.rollback();
+      conn.release();
+      throw err;
+    }
+  } catch (err) {
+    next(err);
+  }
+}
+
 // Public cancellation — no auth required
 async function cancelAppointment(req, res, next) {
   try {
@@ -118,9 +250,6 @@ async function cancelAppointment(req, res, next) {
     if (result.error) {
       return res.status(400).json({ error: result.error });
     }
-
-    // Notification stub — wire up when notification system is ready
-    // notificationService.appointmentCancelled(result.appointment)
 
     return res.json({ appointment: result.appointment });
   } catch (err) {
@@ -169,8 +298,10 @@ async function updateAppointmentStatus(req, res, next) {
 
     const actorIsOwner = (req.user.role === 'owner');
     const actorIsBarber = (req.user.role === 'barber');
+    const actorIsAdmin = (req.user.role === 'admin');
     let allowed = false;
 
+    if (actorIsAdmin) allowed = true;
     if (actorIsOwner) {
       const shop = await shopService.getByOwnerId(userId);
       if (shop && shop.id === appointment.shop_id) allowed = true;
@@ -204,5 +335,6 @@ module.exports = {
   cancelAppointment,
   getAppointmentsForShop,
   getAppointmentsForBarber,
-  updateAppointmentStatus
+  updateAppointmentStatus,
+  createWalkIn
 };
