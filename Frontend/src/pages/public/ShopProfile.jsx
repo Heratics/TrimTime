@@ -35,18 +35,17 @@ export default function ShopProfile() {
   const days = [t('days_0'), t('days_1'), t('days_2'), t('days_3'), t('days_4'), t('days_5'), t('days_6')]
 
   // ── Walk-In visibility logic ─────────────────────────────────────────────
-  // Show button only to admin, owner (of this shop), or barber (of this shop)
+  // Admin: any shop. Owner: only their shop. Barber: only their shop.
   const canWalkIn = (() => {
     if (!isAuthenticated || !user) return false
     if (user.role === 'admin') return true
     if (user.role === 'owner') {
-      // owner's shop_id is stored in user object (set during login)
-      // We compare against shop.owner_user_id if available, otherwise allow and let backend verify
-      return true
+      // shop.owner_user_id is the user id of the owner
+      return shop.owner_user_id === user.id
     }
     if (user.role === 'barber') {
-      // Same: let backend verify, but only show button for barbers
-      return true
+      // user.shop_id is injected by /auth/me and /auth/login for barbers
+      return user.shop_id === shop.id
     }
     return false
   })()

@@ -22,7 +22,6 @@ function isOpenNow(hours, now = new Date()) {
   const currentTime = `${getPart('hour')}:${getPart('minute')}`;
   const open = dayHours.open_time.slice(0, 5);
   const close = dayHours.close_time.slice(0, 5);
-  // Overnight hours e.g. 11:00 - 00:30
   if (close <= open) {
     return currentTime >= open || currentTime < close;
   }
@@ -38,9 +37,10 @@ async function getPublicShop(shop) {
     reviewService.getStatsForShop(shop.id),
   ]);
 
-  const { owner_user_id, ...publicShop } = shop;
   return {
-    ...publicShop,
+    ...shop,
+    // owner_user_id is intentionally kept — it's a non-sensitive integer used
+    // by the frontend to scope the Walk-In button to the correct owner only.
     hours,
     barbers: barbers
       .filter(barber => barber.is_active)
