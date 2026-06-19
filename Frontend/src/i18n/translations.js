@@ -80,18 +80,18 @@ const translations = {
     register_back_signin: 'Back to Sign In',
 
     // --- Public Home ---
-    home_tagline: 'TrimTime Aqaba',
-    home_hero: 'Find and book barber appointments in Aqaba.',
+    home_tagline: 'TrimTime Jordan',
+    home_hero: 'Find and book barber appointments in Jordan.',
     home_sub: 'Discover local barber shops, compare services, and reserve your time in a few taps.',
     home_search_placeholder: 'Search shops or barbers',
     home_search_btn: 'Search',
     home_discover: 'Discover',
     home_featured: 'Featured shops',
     home_view_all: 'View all shops',
-    home_featured_empty: 'Featured shops will appear here as Aqaba shops are added.',
+    home_featured_empty: 'Featured shops will appear here as Jordanian shops are added.',
     home_how_title: 'How TrimTime works',
     home_step1_title: 'Find a shop',
-    home_step1_text: 'Search barber shops and barbers across Aqaba.',
+    home_step1_text: 'Search barber shops and barbers across Jordan.',
     home_step2_title: 'Pick your time',
     home_step2_text: 'Choose a service and an available appointment slot.',
     home_step3_title: 'Book instantly',
@@ -100,14 +100,14 @@ const translations = {
     home_cta_btn: 'Find a barber',
 
     // --- Public Shops ---
-    shops_region: 'Aqaba',
+    shops_region: 'Jordan',
     shops_heading: 'Find your barber shop',
     shops_sub: 'Search by shop or barber name, then book your appointment online.',
     shops_search_placeholder: 'Shop or barber name',
     shops_all_districts: 'All districts',
     shops_open_now: 'Open now',
     shops_error: 'Unable to load shops right now.',
-    shops_empty: 'No Aqaba shops match these filters.',
+    shops_empty: 'No Jordanian shops match these filters.',
 
     // --- Shop Profile ---
     profile_open_now: 'Open now',
@@ -124,7 +124,7 @@ const translations = {
     profile_closed_day: 'Closed',
     profile_loading: 'Loading shop...',
     profile_not_found: 'Shop not found.',
-    profile_default_desc: 'Book your next appointment at this Aqaba barber shop.',
+    profile_default_desc: 'Book your next appointment at this Jordanian barber shop.',
     profile_default_address: 'Address not added',
     days_0: 'Sunday',
     days_1: 'Monday',
@@ -373,7 +373,7 @@ const translations = {
 
     // --- Owner Setup Shop ---
     setup_title: 'Set Up Your Shop',
-    setup_sub: 'This information will appear on your public shop page in Aqaba.',
+    setup_sub: 'This information will appear on your public shop page in Jordan.',
     setup_name: 'Shop Name *',
     setup_desc: 'Description',
     setup_desc_placeholder: 'Tell customers about your shop…',
@@ -600,18 +600,18 @@ const translations = {
     register_back_signin: 'العودة لتسجيل الدخول',
 
     // --- Public Home ---
-    home_tagline: 'تريم تايم العقبة',
-    home_hero: 'ابحث عن صالون حلاقة واحجز موعدك في العقبة.',
+    home_tagline: 'تريم تايم الأردن',
+    home_hero: 'ابحث عن صالون حلاقة واحجز موعدك في الأردن.',
     home_sub: 'اكتشف صالونات الحلاقة المحلية، وقارن الخدمات، واحجز وقتك بلمسات قليلة.',
     home_search_placeholder: 'ابحث عن صالون أو حلاق',
     home_search_btn: 'بحث',
     home_discover: 'اكتشف',
     home_featured: 'الصالونات المميزة',
     home_view_all: 'عرض جميع الصالونات',
-    home_featured_empty: 'ستظهر الصالونات المميزة هنا عند إضافة صالونات العقبة.',
+    home_featured_empty: 'ستظهر الصالونات المميزة هنا عند إضافة صالونات الأردن.',
     home_how_title: 'كيف يعمل تريم تايم',
     home_step1_title: 'ابحث عن صالون',
-    home_step1_text: 'ابحث في صالونات ومزييني الشعر في العقبة.',
+    home_step1_text: 'ابحث في صالونات ومزييني الشعر في الأردن.',
     home_step2_title: 'اختر وقتك',
     home_step2_text: 'اختر خدمة وموعداً متاحاً.',
     home_step3_title: 'احجز فوراً',
@@ -620,14 +620,14 @@ const translations = {
     home_cta_btn: 'ابحث عن حلاق',
 
     // --- Public Shops ---
-    shops_region: 'العقبة',
+    shops_region: 'الأردن',
     shops_heading: 'ابحث عن صالون حلاقة',
     shops_sub: 'ابحث باسم الصالون أو الحلاق، ثم احجز موعدك أونلاين.',
     shops_search_placeholder: 'اسم الصالون أو الحلاق',
     shops_all_districts: 'جميع المناطق',
     shops_open_now: 'مفتوح الآن',
     shops_error: 'تعذر تحميل الصالونات حالياً.',
-    shops_empty: 'لا توجد صالونات في العقبة تطابق هذه الفلاتر.',
+    shops_empty: 'لا توجد صالونات في الأردن تطابق هذه الفلاتر.',
 
     // --- Shop Profile ---
     profile_open_now: 'مفتوح الآن',
@@ -644,7 +644,7 @@ const translations = {
     profile_closed_day: 'مغلق',
     profile_loading: 'جارٍ تحميل الصالون...',
     profile_not_found: 'الصالون غير موجود.',
-    profile_default_desc: 'احجز موعدك القادم في صالون الحلاقة هذا في العقبة.',
+    profile_default_desc: 'احجز موعدك القادم في صالون الحلاقة هذا في الأردن.',
     profile_default_address: 'لم يُضَف العنوان',
     days_0: 'الأحد',
     days_1: 'الاثنين',
@@ -893,7 +893,7 @@ const translations = {
 
     // --- Owner Setup Shop ---
     setup_title: 'إعداد صالونك',
-    setup_sub: 'ستظهر هذه المعلومات في صفحة صالونك العامة في العقبة.',
+    setup_sub: 'ستظهر هذه المعلومات في صفحة صالونك العامة في الأردن.',
     setup_name: 'اسم الصالون *',
     setup_desc: 'الوصف',
     setup_desc_placeholder: 'أخبر العملاء عن صالونك…',
